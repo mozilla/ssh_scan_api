@@ -1,6 +1,6 @@
-# Contributing to ssh_scan
+# Contributing to ssh_scan_api
 
-Thanks for your interest in contributing to ssh_scan.
+Thanks for your interest in contributing to ssh_scan_api.
 
 If you could follow the following guidelines, you will make it much easier for
 us to give feedback, help you find whatever problem you have and fix it.
@@ -8,7 +8,7 @@ us to give feedback, help you find whatever problem you have and fix it.
 ## Issues
 
 If you have questions of any kind, or are unsure of how something works, please
-[create an issue](https://github.com/claudijd/ssh_scan/issues/new).
+[create an issue](https://github.com/claudijd/ssh_scan_api/issues/new).
 
 Please try to answer the following questions in your issue:
 
