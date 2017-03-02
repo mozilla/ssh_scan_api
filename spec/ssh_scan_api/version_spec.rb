@@ -7,11 +7,22 @@ describe SSHScan::API_VERSION do
     expect(SSHScan::API_VERSION).to be_kind_of(::String)
   end
 
-  it "SSHScan::API_VERSION should have 1 level" do
-    expect(SSHScan::API_VERSION.split('.').size).to eql(1)
-  end
+  it "SSHScan::API_VERSION should have appropriate version" do
+    tokens = SSHScan::API_VERSION.split(".")
 
-  it "SSHScan::API_VERSION should have a number between 1-20 for each octet" do
-    expect(SSHScan::API_VERSION).to eql("1")
+    expect(tokens.size).to be_between(3,4).inclusive
+
+	if tokens.size == 3
+	  tokens.each do |token|
+        expect(token).to be_kind_of(::String)
+        expect(token.to_i).to be_between(0,50).inclusive
+	  end
+	else tokens.size == 4
+	  expect(tokens[-1]).to match(/pre/)
+	  tokens[0,3].each do |token|
+        expect(token).to be_kind_of(::String)
+        expect(token.to_i).to be_between(0,50).inclusive
+	  end
+	end
   end
 end

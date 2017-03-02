@@ -16,7 +16,7 @@ describe SSHScan::API do
     expect(last_response.status).to eql(200)
     expect(last_response.body).to eql(
       "See API documentation here: \
-https://github.com/mozilla/ssh_scan/wiki/ssh_scan-Web-API\n"
+https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     )
   end
 
