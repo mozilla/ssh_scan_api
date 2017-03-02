@@ -1,9 +1,9 @@
 $: << "lib"
-require 'ssh_scan/version'
+require 'ssh_scan_api/version'
 require 'date'
 
 Gem::Specification.new do |s|
-  s.name = 'ssh_scan'
+  s.name = 'ssh_scan_api'
   s.version = SSHScan::API_VERSION
   s.authors = ["Harsh Vardhan", "Rishabh Saxena", "Ashish Gaurav", "Jonathan Claudius" ]
   s.date = Date.today.to_s
