@@ -5,7 +5,7 @@ require 'rspec'
 require 'rspec/core'
 require 'rspec/core/rake_task'
 require 'bundler/setup'
-require 'ssh_scan/version'
+require 'ssh_scan_api/version'
 
 $:.unshift File.join(File.dirname(__FILE__), "lib")
 

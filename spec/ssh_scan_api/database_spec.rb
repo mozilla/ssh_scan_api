@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'rspec'
-require 'ssh_scan/database'
+require 'ssh_scan_api/database'
 require 'securerandom'
 require 'tempfile'
 

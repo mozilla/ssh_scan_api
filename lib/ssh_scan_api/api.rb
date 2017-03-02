@@ -1,23 +1,19 @@
 require 'sinatra/base'
 require 'sinatra/namespace'
-require 'ssh_scan/version'
-require 'ssh_scan/policy'
-require 'ssh_scan/job_queue'
-require 'ssh_scan/database'
-require 'ssh_scan/worker'
-require 'ssh_scan/stats'
 require 'json'
 require 'haml'
 require 'secure_headers'
 require 'thin'
 require 'securerandom'
-require 'ssh_scan/authenticator'
+require 'ssh_scan'
+require 'ssh_scan_api/job_queue'
+require 'ssh_scan_api/database'
 
 module SSHScan
   class API < Sinatra::Base
     if ENV['RACK_ENV'] == 'test'
       configure do
-        set :job_queue, JobQueue.new()
+        set :job_queue, SSHScan::JobQueue.new()
         set :authentication, false
         config_file = File.join(Dir.pwd, "./config/api/config.yml")
         opts = YAML.load_file(config_file)
@@ -116,7 +112,7 @@ https://github.com/mozilla/ssh_scan/wiki/ssh_scan-Web-API\n"
                                '/config/policies/mozilla_modern.yml'),
           :timeout => 2,
           :verbosity => nil,
-          :fingerprint_database => "fingerprints.db",
+          #:fingerprint_database => "fingerprints.db",
         }
         options[:sockets] <<
           "#{params[:target]}:#{params[:port] ? params[:port] : "22"}"

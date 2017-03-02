@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'rspec'
-require 'ssh_scan/version'
+require 'ssh_scan_api/version'
 
 describe SSHScan::API_VERSION do
   it "SSHScan::API_VERSION should be a string" do

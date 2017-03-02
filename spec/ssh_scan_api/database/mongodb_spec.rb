@@ -1,5 +1,5 @@
 require 'rspec'
-require 'ssh_scan/database/mongo'
+require 'ssh_scan_api/database/mongo'
 require 'securerandom'
 require 'tempfile'
 require 'json'

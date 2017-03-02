@@ -1,6 +1,6 @@
 require 'spec_helper'
 require 'rspec'
-require 'ssh_scan/database/sqlite'
+require 'ssh_scan_api/database/sqlite'
 require 'securerandom'
 require 'tempfile'
 require 'json'

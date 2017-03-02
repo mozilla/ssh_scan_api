@@ -1,5 +1,5 @@
-require 'ssh_scan/database/mongo'
-require 'ssh_scan/database/sqlite'
+require 'ssh_scan_api/database/mongo'
+require 'ssh_scan_api/database/sqlite'
 
 module SSHScan
   class Database

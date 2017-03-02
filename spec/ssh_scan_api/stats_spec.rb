@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'ssh_scan/stats'
+require 'ssh_scan_api/stats'
 
 describe SSHScan::Stats do
   it "should have zero requests to start with" do
