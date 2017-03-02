@@ -61,13 +61,13 @@ module SSHScan
     not_found do
       content_type "text/plain"
       "Invalid request, see API documentation here: \
-https://github.com/mozilla/ssh_scan/wiki/ssh_scan-Web-API\n"
+https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     end
 
     get '/' do
       content_type "text/plain"
       "See API documentation here: \
-https://github.com/mozilla/ssh_scan/wiki/ssh_scan-Web-API\n"
+https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     end
 
     get '/robots.txt' do
