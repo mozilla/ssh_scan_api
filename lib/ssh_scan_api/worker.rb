@@ -1,4 +1,5 @@
 require 'ssh_scan/scan_engine'
+require 'ssh_scan_api/version'
 require 'openssl'
 require 'net/https'
 

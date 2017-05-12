@@ -2,6 +2,7 @@
 $:.unshift File.join(File.dirname(__FILE__), "../lib")
 
 require 'ssh_scan'
+require 'ssh_scan_api/worker'
 
 # Get the worker config from command-line or via an example location
 config_file = ARGV[0] ||
