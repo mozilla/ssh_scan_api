@@ -97,7 +97,7 @@ work?worker_id=#{@worker_id}"
 
     def post_results(results, job)
       uri = URI(
-        "#{@scheme}://#{@server}:#{@port}/api/v#{SSHScan::API_VERSION}/\
+        "#{@scheme}://#{@server}:#{@port}/api/v1/\
 work/results/#{@worker_id}/#{job["uuid"]}"
       )
       http = Net::HTTP.new(uri.host, uri.port)
