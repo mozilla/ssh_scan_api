@@ -29,11 +29,11 @@ authentication: false
 
 # Define database configuration
 # MongoDB Example
-# database:
-#   type: mongodb
-#   name: ssh_scan
-#   server: 127.0.0.1
-#   port: 27017
+#database:
+#  type: mongodb
+#  name: ssh_scan
+#  server: 127.0.0.1
+#  port: 27017
 
 # SQLite Example
 database:

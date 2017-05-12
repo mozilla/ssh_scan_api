@@ -114,6 +114,8 @@ work/results/#{@worker_id}/#{job["uuid"]}"
 
       request = Net::HTTP::Post.new(uri.path)
       request.add_field("SSH_SCAN_AUTH_TOKEN", @auth_token) unless @auth_token.nil?
+      request.add_field("Content-Type", "application/json")
+
       request.body = results.to_json
       http.request(request)
       @logger.info("Posted job: #{job["uuid"]}")
