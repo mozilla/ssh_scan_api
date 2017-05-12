@@ -15,7 +15,7 @@ eprint("[+] Got %s %s %s" % (resp.status_code, resp.reason, resp.text))
 
 resp_json = json.loads(resp.text)
 res_url = "%s/api/v1/scan/results?uuid=%s" % (api_server, resp_json["uuid"])
-time.sleep(1)
+time.sleep(0.5)
 
 while True:
     eprint("[+] Checking for scan results")
