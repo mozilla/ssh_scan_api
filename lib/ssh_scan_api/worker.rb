@@ -11,7 +11,8 @@ module SSHScan
       @verify = opts["verify"] || "false"
       @port = opts["port"] || 8000
       @logger = setup_logger(opts["logger"])
-      @poll_interval = 5 # seconds
+      @poll_interval = opts["poll_interval"] || 5 # in seconds
+      @poll_restore_interval = opts["poll_restore_interval"] || 5 # in seconds
       @worker_id = SecureRandom.uuid
       @verify_ssl = false
       @auth_token = opts["auth_token"] || nil
@@ -43,13 +44,13 @@ module SSHScan
             results = perform_work(job)
             post_results(results, job)
           else
-            @logger.info("No jobs available (waiting 5 seconds)")
-            sleep 5
+            @logger.info("No jobs available (waiting #{@poll_interval} seconds)")
+            sleep @poll_interval
             next
           end
         rescue Errno::ECONNREFUSED
-          @logger.error("Cannot reach API endpoint, waiting 5 seconds")
-          sleep 5
+          @logger.error("Cannot reach API endpoint, waiting #{@poll_restore_interval} seconds")
+          sleep @poll_restore_interval
         rescue RuntimeError => e
           @logger.error(e.inspect)
         end
