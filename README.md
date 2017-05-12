@@ -4,13 +4,6 @@ A web api to scale ssh_scan operations
 
 ## Setup
 
-To install and run as a gem, type:
-
-```bash
-gem install ssh_scan_api
-ssh_scan_api
-```
-
 To install and run from source, type:
 
 ```bash
@@ -34,6 +27,12 @@ bundle install
 
 ./bin/ssh_scan_api
 ```
+
+## ssh_scan as a command-line tool?
+
+This project is focused on providing ssh_scan as a service/API.
+
+If you would like to run ssh_scan from command-line, checkout the [ssh_scan](https://github.com/mozilla/ssh_scan) project.
 
 ## Rubies Supported
 
