@@ -37,6 +37,7 @@ module SSHScan
       loop do
         begin
           response = retrieve_work
+          
           if response["work"]
             job = response["work"]
             results = perform_work(job)
@@ -64,7 +65,7 @@ module SSHScan
       end
 
       uri = URI(
-        "#{@scheme}://#{@server}:#{@port}/api/v#{SSHScan::API_VERSION}/\
+        "#{@scheme}://#{@server}:#{@port}/api/v1/\
 work?worker_id=#{@worker_id}"
       )
       http = Net::HTTP.new(uri.host, uri.port)
@@ -88,6 +89,7 @@ work?worker_id=#{@worker_id}"
     def perform_work(job)
       @logger.info("Started job: #{job["uuid"]}")
       scan_engine = SSHScan::ScanEngine.new
+      job["fingerprint_database"] = File.join(File.dirname(__FILE__),"../../data/fingerprints.yml")
       results = scan_engine.scan(job)
       @logger.info("Completed job: #{job["uuid"]}")
       return results
