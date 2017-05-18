@@ -46,9 +46,12 @@ module SSHScan
     register Sinatra::Namespace
 
     before do
-      headers "Server" => "ssh_scan_api"
+      headers "Access-Control-Allow-Methods" => "GET, POST"
+      headers "Access-Control-Allow-Origin" => "*"
+      headers "Access-Control-Max-Age" => "86400"
       headers "Cache-control" => "no-store"
       headers "Pragma" => "no-cache"
+      headers "Server" => "ssh_scan_api"
     end
 
     helpers do
