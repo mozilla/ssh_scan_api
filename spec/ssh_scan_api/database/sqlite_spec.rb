@@ -165,4 +165,27 @@ describe SSHScan::DB::SQLite do
     temp_file.close
   end
 
+  it "should #fetch_cached_result in database" do
+    worker_id = SecureRandom.uuid
+    uuid1 = SecureRandom.uuid
+    scan_time = Time.now.to_s
+    result1 = {"ip" => "127.0.0.1", "port" => 1337, "foo" => "bar", "biz" => "baz", "start_time" => scan_time}
+    socket = {"target" => "127.0.0.1", "port" => 1337}
+
+    temp_file = Tempfile.new('sqlite_database_file')
+
+    opts = {
+      "file" => temp_file.path
+    }
+
+    sqlite_db = SSHScan::DB::SQLite.from_hash(opts)
+    sqlite_db.add_scan(worker_id, uuid1, result1, socket)
+
+    response = sqlite_db.fetch_cached_result(socket)
+    expect(response["uuid"]).to eql(uuid1)
+    expect(response["start_time"]).to eql(scan_time)
+
+    temp_file.close
+  end
+
 end
