@@ -100,6 +100,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         authenticated? if settings.authentication == true
         
         options = {}
+        options["policy"] = File.join(Dir.pwd, '/config/policies/mozilla_modern.yml')
         options["socket"] = {
           "target" => params["target"],
           "port" => params["port"] ? params["port"] : 22
