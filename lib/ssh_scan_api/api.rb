@@ -93,26 +93,16 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     namespace "/api/v1" do
       before do
         content_type :json
-        if settings.authentication == true
-          token = request.env['HTTP_SSH_SCAN_AUTH_TOKEN']
-
-          # If a token is not provided, only localhost can proceed
-          if token.nil? && request.ip != "127.0.0.1"
-            halt '{"error" : "authentication failure"}'
-          end
-
-          # If a token is provided, it must be valid to proceed
-          if token && settings.authenticator.valid_token?(token) == false
-            halt '{"error" : "authentication failure"}'
-          end
-        end
       end
 
       post '/scan' do
+        # Require authentication for this route only when auth is enabled
+        authenticated? if settings.authentication == true
+        
         options = {}
         options["socket"] = {
           "target" => params["target"],
-          "port" => params["port"] ? params["port"] : 22,
+          "port" => params["port"] ? params["port"] : 22
         }
         options["sockets"] = [options["socket"].values.join(":")]
         options["policy_file"] = options["policy"]
@@ -147,6 +137,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       end
 
       get '/scan/results' do
+        # Require authentication for this route only when auth is enabled
+        authenticated? if settings.authentication == true
+
         uuid = params[:uuid]
         return {"scan" => "not found"}.to_json if uuid.nil? || uuid.empty?
         result = settings.db.find_scan_result(uuid)
@@ -155,6 +148,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       end
 
       post '/scan/results/delete' do
+        # Always require authentication for this route
+        authenticated?
+
         uuid = params[:uuid]
 
         if uuid.nil? || uuid.empty?
@@ -171,10 +167,16 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       end
 
       get '/scan/results/delete/all' do
+        # Always require authentication for this route
+        authenticated?
+
         settings.db.delete_all
       end
 
       get '/work' do
+        # Always require authentication for this route
+        authenticated?
+
         worker_id = params[:worker_id]
         logger.warn("Worker #{worker_id} polls for Job")
         job = settings.job_queue.next
@@ -188,6 +190,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       end
 
       post '/work/results/:worker_id/:uuid' do
+        # Always require authentication for this route
+        authenticated?
+
         worker_id = params['worker_id']
         uuid = params['uuid']
         result = JSON.parse(request.body.first).first
@@ -211,6 +216,20 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           :status  => "OK",
           :message => "Keep sending requests. I am still alive."
         }.to_json
+      end
+    end
+
+    def authenticated?
+      token = request.env['HTTP_SSH_SCAN_AUTH_TOKEN']
+
+      # If a token is not provided, only localhost can proceed
+      if token.nil? && request.ip != "127.0.0.1"
+        halt '{"error" : "authentication failure"}'
+      end
+
+      # If a token is provided, it must be valid to proceed
+      if token && settings.authenticator.valid_token?(token) == false
+        halt '{"error" : "authentication failure"}'
       end
     end
 

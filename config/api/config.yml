@@ -23,6 +23,8 @@ authentication: false
 #   - username    : gamora
 #     token       : INSERT_GAMORA_TOKEN
 
+# Any remote workers (not on the loopback) will be required to authenticate to prevent
+# unauthorized users from acting as rogue workers
 # workers:
 #   - worker_name : worker1
 #     token       : INSERT_WORKER1_TOKEN
