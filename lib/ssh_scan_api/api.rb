@@ -109,33 +109,40 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       end
 
       post '/scan' do
-        options = {
-          :sockets => [],
-          :policy => File.join(Dir.pwd,
-                               '/config/policies/mozilla_modern.yml'),
-          :timeout => 2,
-          :verbosity => nil,
-          #:fingerprint_database => "fingerprints.db",
+        options = {}
+        options["socket"] = {
+          "target" => params["target"],
+          "port" => params["port"] ? params["port"] : 22,
         }
-        options[:sockets] <<
-          "#{params[:target]}:#{params[:port] ? params[:port] : "22"}"
-        options[:policy_file] = options[:policy]
-        options[:force] = params[:force] ? params[:force] : false
+        options["sockets"] = [options["socket"].values.join(":")]
+        options["policy_file"] = options["policy"]
+        options["force"] = params["force"] ? params["force"] : false
 
-        unless options[:force] == 'true'
-          available_result = settings.db.fetch_cached_result(params)
-          unless available_result.nil?
-            if cache_valid?(available_result[:start_time])
+        unless options["force"] == 'true'
+
+          # Check the active job queue for duplicates (prevents queue spamming)
+          settings.job_queue.each do |job|
+            if options["socket"] == job["socket"]
               return {
-                uuid: available_result[:uuid]
+                uuid: job["uuid"]
+              }.to_json
+            end
+          end
+
+          # Check for recently submit jobs that are already done (limits network i/o abuse)
+          available_result = settings.db.fetch_cached_result(options["socket"])
+          if available_result
+            if cache_valid?(available_result["start_time"])
+              return {
+                uuid: available_result["uuid"]
               }.to_json
             end
           end
         end
-        options[:uuid] = SecureRandom.uuid
+        options["uuid"] = SecureRandom.uuid
         settings.job_queue.add(options)
         {
-          uuid: options[:uuid]
+          uuid: options["uuid"]
         }.to_json
       end
 
@@ -185,8 +192,8 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         uuid = params['uuid']
         result = JSON.parse(request.body.first).first
         socket = {}
-        socket[:target] = result['ip']
-        socket[:port] = result['port']
+        socket["target"] = result['ip']
+        socket["port"] = result['port']
 
         if worker_id.empty? || uuid.empty?
           return {"accepted" => "false"}.to_json
