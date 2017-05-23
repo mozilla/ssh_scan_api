@@ -43,6 +43,10 @@ module SSHScan
             job = response["work"]
             results = perform_work(job)
             post_results(results, job)
+          elsif response["error"]
+            @logger.info("Error: #{response["error"]}")
+            sleep @poll_interval
+            next
           else
             @logger.info("No jobs available (waiting #{@poll_interval} seconds)")
             sleep @poll_interval
