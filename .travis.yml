@@ -8,12 +8,17 @@ matrix:
       - mongodb
     after_success:
       - coveralls
-  - rvm: 2.3.0
+  - rvm: 2.4.1
     env:
       - LABEL=unit_tests
     services:
       - mongodb
-  - rvm: 2.2.0
+  - rvm: 2.3.4
+    env:
+      - LABEL=unit_tests
+    services:
+      - mongodb
+  - rvm: 2.2.7
     env:
       - LABEL=unit_tests
     services:
