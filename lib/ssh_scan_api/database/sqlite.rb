@@ -49,7 +49,7 @@ module SSHScan
 
       def add_scan(worker_id, uuid, result, socket)
         @database.execute "insert into ssh_scan values ( ? , ? , ? , ? , ? )",
-                    [uuid, socket["target"], socket["port"],
+                    [uuid, socket["target"], socket["port"].to_i,
                      result.to_json, worker_id]
       end
 
@@ -79,7 +79,7 @@ module SSHScan
         results = @database.execute(
           "select uuid, result from ssh_scan
           where target = ( ? ) and port = ( ? )",
-          [socket["target"], socket["port"]]
+          [socket["target"], socket["port"].to_i]
         )
 
         return nil if results == []

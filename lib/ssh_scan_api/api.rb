@@ -57,7 +57,7 @@ module SSHScan
 
     helpers do
       def cache_valid?(start_time)
-        (Time.now - Time.parse(start_time.to_s)) / (60 * 60 * 24) < 1
+        (Time.now - Time.parse(start_time.to_s)) <= 60
       end
     end
 
@@ -119,6 +119,19 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
                 uuid: job["uuid"]
               }.to_json
             end
+          end
+
+          # Make an attempt to resolve hostname to pickup cached results and save on network i/o
+          begin
+            if options["socket"]["target"].fqdn?
+              ip_address = options["socket"]["target"].resolve_fqdn
+
+              if ip_address.ip_addr?
+                options["socket"]["target"] = ip_address
+              end
+            end
+          rescue
+            #nop
           end
 
           # Check for recently submit jobs that are already done (limits network i/o abuse)

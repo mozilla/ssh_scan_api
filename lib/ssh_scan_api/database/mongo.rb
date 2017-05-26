@@ -29,7 +29,7 @@ module SSHScan
        def add_scan(worker_id, uuid, result, socket)
         @collection.insert_one("uuid" => uuid,
                           "target" => socket["target"],
-                          "port" => socket["port"],
+                          "port" => socket["port"].to_i,
                           "scan" => result,
                           "worker_id" => worker_id)
       end
@@ -52,7 +52,7 @@ module SSHScan
       end
 
       def fetch_cached_result(socket)
-        results = @collection.find("target" => socket["target"], "port" => socket["port"])
+        results = @collection.find("target" => socket["target"], "port" => socket["port"].to_i)
         results = results.skip(results.count() - 1)
         return nil if results.count.zero?
         result = {}
