@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+</head>
+<body>
+<script>
+var target = "ssh.mozilla.com";
+$.post("https://sshscan.rubidus.com/api/v1/scan?target=".concat(target), function(data, status){
+	document.write("<pre>[+] Submitting scan request for".concat(target,"</pre>"));
+	var uuid = data["uuid"]; 
+  document.write("<pre>[+] Got a scan tasked with UUID: ".concat(uuid, "</pre>"));
+	
+	(function loopsiloop(){
+	  setTimeout(function(){
+	    $.ajax({
+	      url: "https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid),
+	      type: "GET",
+	    	retryLimit: 3,
+	      success: function( data ){
+	        if (data["ssh_scan_version"])
+		  	  { 
+		  	  	document.write("<pre>[+] Got results</pre>");
+		  		  document.write(JSON.stringify(data));
+		  		  return true;
+		  	  }
+		  	  else
+		  	  {
+	          loopsiloop(); // recurse
+	        }
+	      },
+	      error: function(){
+	        loopsiloop(); // recurse.
+	      }
+	    });
+	  }, 1000);
+	})();
+});
+</script>
+</body>
+</html>
