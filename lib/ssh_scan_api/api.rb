@@ -19,6 +19,7 @@ module SSHScan
         opts = YAML.load_file(config_file)
         opts["config_file"] = config_file
         set :db, SSHScan::Database.from_hash(opts)
+        set :environment, :production
       end
     end
 
