@@ -78,9 +78,10 @@ module SSHScan
         result = {}
         results = @database.execute(
           "select uuid, result from ssh_scan
-          where target like ( ? ) and port like ( ? )",
+          where target = ( ? ) and port = ( ? )",
           [socket["target"], socket["port"]]
         )
+
         return nil if results == []
         result["uuid"] = results[result.length()-1][0]
         result["start_time"] = JSON.parse(results[result.length()-1][1])["start_time"]
