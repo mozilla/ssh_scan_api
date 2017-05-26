@@ -7,37 +7,42 @@
 </head>
 <body>
 <script>
+
+function requestScan(target, callback) {
+  $.post("https://sshscan.rubidus.com/api/v1/scan?target=".concat(target), callback)
+}
+
+function requestScanResult(uuid, callback) {
+  $.get("https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid), callback)
+}
+
 var target = "ssh.mozilla.com";
-$.post("https://sshscan.rubidus.com/api/v1/scan?target=".concat(target), function(data, status){
-	document.write("<pre>[+] Submitting scan request for".concat(target,"</pre>"));
-	var uuid = data["uuid"]; 
-  document.write("<pre>[+] Got a scan tasked with UUID: ".concat(uuid, "</pre>"));
-	
-	(function loopsiloop(){
-	  setTimeout(function(){
-	    $.ajax({
-	      url: "https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid),
-	      type: "GET",
-	    	retryLimit: 3,
-	      success: function( data ){
-	        if (data["ssh_scan_version"])
-		  	  { 
-		  	  	document.write("<pre>[+] Got results</pre>");
-		  		  document.write(JSON.stringify(data));
-		  		  return true;
-		  	  }
-		  	  else
-		  	  {
-	          loopsiloop(); // recurse
-	        }
-	      },
-	      error: function(){
-	        loopsiloop(); // recurse.
-	      }
-	    });
-	  }, 1000);
-	})();
+$("body").append("<pre>Tasking Scan for ".concat(target,"</pre>"));
+requestScan("ssh.mozilla.com", function(data) {
+	$("body").append("<pre>Got scan UUID: ".concat(data.uuid,'</pre>'));
+  
+	//TODO: Figure out how to stop unset this interval, for some reason it's not working for me.
+  // var int = setInterval(
+  setInterval(
+	  function(){
+	  	requestScanResult(data.uuid, function(data) {
+		  	if (data.ssh_scan_version) {
+		  		$("body").append("<pre>Got scan result</pre>");
+		  		$("body").append(JSON.stringify(data));
+		  		return 0;
+		   	}
+		  	else
+		  	{
+		  		$("body").append("<pre>Scan is still pending</pre>");
+		    }
+		  })
+		},
+	  1000
+	);
+
+	//clearInterval(myTimer);
 });
+
 </script>
 </body>
 </html>
