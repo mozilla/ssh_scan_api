@@ -2,6 +2,10 @@
 *.db
 /coverage/
 
+config/api/config.yml
+config/policies/mozilla_modern.yml
+config/worker/config.yml
+
 ## Documentation cache and generated files:
 /.yardoc/
 /_yardoc/
