@@ -115,4 +115,26 @@ describe SSHScan::DB::MongoDb do
     expect(response).to eql(nil)
   end
 
+  it "should #fetch_cached_result in database" do
+    worker_id = SecureRandom.uuid
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
+    scan_time = Time.now.to_s
+    result1 = {"ip" => "127.0.0.1", "port" => 1337, "foo" => "bar", "biz" => "baz", "start_time" => scan_time}
+    result2 = {"ip" => "127.0.0.2", "port" => 1337, "foo" => "bar", "biz" => "baz", "start_time" => scan_time}
+
+    socket1 = {"target" => "127.0.0.1", "port" => 1337}
+    socket2 = {"target" => "127.0.0.2", "port" => 1337}
+
+    @mongodb.add_scan(worker_id, uuid1, result1, socket1)
+    @mongodb.add_scan(worker_id, uuid2, result2, socket2)
+
+    response = @mongodb.fetch_cached_result(socket1)
+    expect(response["uuid"]).to eql(uuid1)
+    expect(response["start_time"]).to eql(scan_time)
+
+    response = @mongodb.fetch_cached_result(socket2)
+    expect(response["uuid"]).to eql(uuid2)
+    expect(response["start_time"]).to eql(scan_time)
+  end
 end
