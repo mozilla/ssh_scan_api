@@ -18,10 +18,6 @@ function requestScanResult(uuid, callback) {
     $.get("https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid), callback)
 }
 
-function sleep(time) {
-    return new Promise((resolve) => setTimeout(resolve, time));
-}
-
 var target = "ssh.mozilla.com";
 $("body").append("<pre>[+] Tasking Scan for ".concat(target, "</pre>"));
 requestScan("ssh.mozilla.com", function(data) {
