@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8"/>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://rawgit.com/google/code-prettify/master/loader/run_prettify.js?autoload=true&amp;skin=sunburst&amp;lang=css" defer></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.11.0/highlight.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </head>
 <body>
@@ -16,31 +19,29 @@ function requestScanResult(uuid, callback) {
   $.get("https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid), callback)
 }
 
-var target = "ssh.mozilla.com";
-$("body").append("<pre>Tasking Scan for ".concat(target,"</pre>"));
-requestScan("ssh.mozilla.com", function(data) {
-	$("body").append("<pre>Got scan UUID: ".concat(data.uuid,'</pre>'));
-  
-	//TODO: Figure out how to stop unset this interval, for some reason it's not working for me.
-  // var int = setInterval(
-  setInterval(
-	  function(){
-	  	requestScanResult(data.uuid, function(data) {
-		  	if (data.ssh_scan_version) {
-		  		$("body").append("<pre>Got scan result</pre>");
-		  		$("body").append(JSON.stringify(data));
-		  		return 0;
-		   	}
-		  	else
-		  	{
-		  		$("body").append("<pre>Scan is still pending</pre>");
-		    }
-		  })
-		},
-	  1000
-	);
+function sleep (time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
 
-	//clearInterval(myTimer);
+var target = "ssh.mozilla.com";
+$("body").append("<pre>[+] Tasking Scan for ".concat(target,"</pre>"));
+requestScan("ssh.mozilla.com", function(data) {
+	$("body").append("<pre>[+] Got scan UUID: ".concat(data.uuid,'</pre>'));
+	function doPoll(){
+	  requestScanResult(data.uuid, function(data) {
+			if (data.ssh_scan_version)
+			{
+			  $("body").append("<pre>[+] Got scan result</pre>");
+			  $("body").append('<pre><code class="JSON">'.concat(JSON.stringify(data, undefined, 2),'</code></pre>'));
+			}
+			else
+			{ 
+				// wait for 1 sec, then retry
+			  setTimeout(doPoll,1000);
+			}
+		})
+	}
+	doPoll();
 });
 
 </script>
