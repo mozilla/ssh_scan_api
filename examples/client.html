@@ -10,40 +10,36 @@
 </head>
 <body>
 <script>
-
 function requestScan(target, callback) {
-  $.post("https://sshscan.rubidus.com/api/v1/scan?target=".concat(target), callback)
+    $.post("https://sshscan.rubidus.com/api/v1/scan?target=".concat(target), callback)
 }
 
 function requestScanResult(uuid, callback) {
-  $.get("https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid), callback)
+    $.get("https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid), callback)
 }
 
-function sleep (time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
+function sleep(time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
 }
 
 var target = "ssh.mozilla.com";
-$("body").append("<pre>[+] Tasking Scan for ".concat(target,"</pre>"));
+$("body").append("<pre>[+] Tasking Scan for ".concat(target, "</pre>"));
 requestScan("ssh.mozilla.com", function(data) {
-	$("body").append("<pre>[+] Got scan UUID: ".concat(data.uuid,'</pre>'));
-	function doPoll(){
-	  requestScanResult(data.uuid, function(data) {
-			if (data.ssh_scan_version)
-			{
-			  $("body").append("<pre>[+] Got scan result</pre>");
-			  $("body").append('<pre><code class="JSON">'.concat(JSON.stringify(data, undefined, 2),'</code></pre>'));
-			}
-			else
-			{ 
-				// wait for 1 sec, then retry
-			  setTimeout(doPoll,1000);
-			}
-		})
-	}
-	doPoll();
-});
+    $("body").append("<pre>[+] Got scan UUID: ".concat(data.uuid, '</pre>'));
 
+    function doPoll() {
+        requestScanResult(data.uuid, function(data) {
+            if (data.ssh_scan_version) {
+                $("body").append("<pre>[+] Got scan result</pre>");
+                $("body").append('<pre><code class="JSON">'.concat(JSON.stringify(data, undefined, 2), '</code></pre>'));
+            } else {
+                // wait for 1 sec, then retry
+                setTimeout(doPoll, 1000);
+            }
+        })
+    }
+    doPoll();
+});
 </script>
 </body>
 </html>
