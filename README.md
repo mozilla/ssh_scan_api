@@ -1,5 +1,7 @@
 # ssh_scan_api
 
+[![Coverage Status](https://coveralls.io/repos/github/mozilla/ssh_scan_api/badge.svg)](https://coveralls.io/github/mozilla/ssh_scan_api)
+
 A web api to scale ssh_scan operations
 
 ## Setup
