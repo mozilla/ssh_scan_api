@@ -57,7 +57,15 @@ module SSHScan
 
     helpers do
       def cache_valid?(start_time)
-        (Time.now - Time.parse(start_time.to_s)) <= 60
+        return false unless start_time.is_a?(String)
+
+        begin
+          parsed_start_time = Time.parse(start_time)
+        rescue Exception
+          return false
+        end
+
+        (Time.now - parsed_start_time) <= 60
       end
     end
 
