@@ -1,5 +1,4 @@
 require 'ssh_scan_api/database/mongo'
-require 'ssh_scan_api/database/sqlite'
 
 module SSHScan
   class Database
@@ -17,8 +16,6 @@ module SSHScan
 
       # Figure out what database object to load
       case database_options["type"]
-      when "sqlite"
-        database = SSHScan::DB::SQLite.from_hash(database_options)
       when "mongodb"
         database = SSHScan::DB::MongoDb.from_hash(database_options)
       else
