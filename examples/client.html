@@ -10,19 +10,31 @@
 </head>
 <body>
 <script>
+
+// Tasks a scan to the API
 function requestScan(target, callback) {
     $.post("https://sshscan.rubidus.com/api/v1/scan?target=".concat(target), callback)
 }
 
+// Requests scan status/results from the API
 function requestScanResult(uuid, callback) {
     $.get("https://sshscan.rubidus.com/api/v1/scan/results?uuid=".concat(uuid), callback)
 }
 
-var target = "ssh.mozilla.com";
+// Let end user specify the target they want to scan
+var target = location.search.split('target=')[1]
+
+// Default back to ssh.mozilla.com if they just hit the page
+if (target == null){
+  var target = "ssh.mozilla.com";
+}
+
+// Task the scan to the API
 $("body").append("<pre>[+] Tasking Scan for ".concat(target, "</pre>"));
-requestScan("ssh.mozilla.com", function(data) {
+requestScan(target, function(data) {
     $("body").append("<pre>[+] Got scan UUID: ".concat(data.uuid, '</pre>'));
 
+    // Continue to poll the API every second until it returns scan results
     function doPoll() {
         requestScanResult(data.uuid, function(data) {
             if (data.ssh_scan_version) {
