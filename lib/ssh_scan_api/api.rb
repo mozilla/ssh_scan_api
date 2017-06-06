@@ -272,6 +272,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :authenticator, SSHScan::Authenticator.from_config_file(
           options["config_file"]
         )
+        set :protection, false
       end
 
       super do |server|
