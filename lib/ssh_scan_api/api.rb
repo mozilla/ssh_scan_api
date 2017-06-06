@@ -128,8 +128,8 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         case result["status"]
         when "QUEUED"
           return {"status" => "QUEUED"}.to_json
-        when "ERRRORED"
-          return {"status" => "ERRRORED"}.to_json
+        when "ERRORED"
+          return {"status" => "ERRORED"}.to_json
         when "RUNNNING"
           return {"status" => "RUNNNING"}.to_json
         when "COMPLETED"
