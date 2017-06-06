@@ -30,5 +30,10 @@ module SSHScan
     def size
       @queue.size
     end
+
+    # @return [Nil]
+    def delete_all
+      @queue.delete_all
+    end
   end
 end
