@@ -12,10 +12,16 @@ describe SSHScan::Database do
 
   it "should behave like an SSHScan::Database object" do
     expect(@abstract_database.database).to be_kind_of(RSpec::Mocks::Double)
-    expect(@abstract_database.respond_to?(:add_scan)).to be true
-    expect(@abstract_database.respond_to?(:delete_scan)).to be true
-    expect(@abstract_database.respond_to?(:delete_all)).to be true
-    expect(@abstract_database.respond_to?(:find_scan_result)).to be true
+    expect(@abstract_database.respond_to?(:run_count)).to be true
+    expect(@abstract_database.respond_to?(:queue_count)).to be true
+    expect(@abstract_database.respond_to?(:error_count)).to be true
+    expect(@abstract_database.respond_to?(:complete_count)).to be true
+    expect(@abstract_database.respond_to?(:run_scan)).to be true
+    expect(@abstract_database.respond_to?(:complete_scan)).to be true
+    expect(@abstract_database.respond_to?(:error_scan)).to be true
+    expect(@abstract_database.respond_to?(:next_scan_in_queue)).to be true
+    expect(@abstract_database.respond_to?(:find_recent_scans)).to be true
+    expect(@abstract_database.respond_to?(:find_scans)).to be true
   end
 
   it "should defer #add_scan calls to the specific DB implementation" do

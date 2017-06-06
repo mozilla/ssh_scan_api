@@ -28,34 +28,45 @@ module SSHScan
       SSHScan::Database.new(database)
     end
 
-    # @param [String] worker_id
-    # @param [String] uuid
-    # @param [Hash] result
-    # @return [Nil]
-    def add_scan(worker_id, uuid, result, socket)
-      @database.add_scan(worker_id, uuid, result, socket)
-      return nil
+    def run_count
+      @database.run_count
     end
 
-    # @param [String] uuid
-    # @return [Nil]
-    def delete_scan(uuid)
-      @database.delete_scan(uuid)
+    def queue_count
+      @database.queue_count
     end
 
-    # @return [Nil]
-    def delete_all
-      @database.delete_all
+    def error_count
+      @database.error_count
     end
 
-    # @return [Hash] result
-    def find_scan_result(uuid)
-      @database.find_scan_result(uuid)
+    def complete_count
+      @database.complete_count
     end
 
-    # @return [Hash] result
-    def fetch_cached_result(socket)
-      @database.fetch_cached_result(socket)
+    def run_scan(uuid)
+      @database.run_scan(uuid)
     end
+
+    def complete_scan(uuid, worker_id, result)
+      @database.complete_scan(uuid, worker_id, result)
+    end
+
+    def error_scan(uuid, worker_id, result)
+      @database.error_scan(uuid, worker_id, result)
+    end
+
+    def next_scan_in_queue
+      @database.next_scan_in_queue
+    end
+
+    def find_recent_scans(ip, port, seconds_old)
+      @database.find_recent_scans(ip, port, seconds_old)
+    end
+
+    def find_scans(ip, port)
+      @database.find_scans(ip, port)
+    end
+
   end
 end
