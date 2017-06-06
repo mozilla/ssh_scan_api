@@ -41,16 +41,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     get "/api/v1/scan/results"
     expect(last_response.status).to eql(200)
     expect(last_response.body).to eql({
-      "scan" => "not found"
-    }.to_json)
-  end
-
-  it "should be able to POST /scan/results/delete correctly" do
-    bad_uuid = ""
-    post "/api/v1/scan/results/delete", {:uuid => bad_uuid}
-    expect(last_response.status).to eql(200)
-    expect(last_response.body).to eql({
-      "deleted" => "false"
+      "error" => "no uuid specified"
     }.to_json)
   end
 

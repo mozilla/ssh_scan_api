@@ -23,44 +23,86 @@ module SSHScan
         return SSHScan::DB::MongoDb.new(client)
       end
 
-      # @param [String] worker_id
-      # @param [String] uuid
-      # @param [Hash] result
-       def add_scan(worker_id, uuid, result, socket)
-        @collection.insert_one("uuid" => uuid,
-                          "target" => socket["target"],
-                          "port" => socket["port"].to_i,
-                          "scan" => result,
-                          "worker_id" => worker_id)
+      def queue_scan(uuid, socket)
+        @collection.insert_one(
+          "uuid" => uuid,
+          "target" => socket["target"],
+          "port" => socket["port"].to_i,
+          "status" => "QUEUED",
+          "scan" => nil,
+          "worker_id" => nil,
+        )
       end
 
-      def delete_scan(uuid)
-        @collection.delete_one("uuid" => uuid)
+      def run_count
+        @collection.count(status: 'RUNNING')
       end
 
-      def delete_all
-        @collection.delete_many({})
+      def queue_count
+        @collection.count(status: 'QUEUED')
       end
 
-      # LEFT OFF HERE: the results of this method should be the exact same format as with SQLite
-      def find_scan_result(uuid)
-        @collection.find("uuid" => uuid).each do |doc|
-          return doc["scan"].to_hash
+      def error_count
+        @collection.count(status: 'ERRORED')
+      end
+
+      def complete_count
+        @collection.count(status: 'COMPLETED')
+      end
+
+      def total_count
+        @collection.count
+      end
+
+      def run_scan(uuid)
+        @collection.find(uuid: uuid).update_one(
+          '$set'=> { 'status' => 'RUNNING' }
+        )
+      end
+
+      def get_scan(uuid)
+        @collection.find(uuid: uuid).first
+      end
+
+      def complete_scan(uuid, worker_id, result)
+        @collection.find(uuid: uuid).update_one(
+          '$set'=> { 
+            'status' => 'COMPLETED',
+            'worker_id' => worker_id,
+            'scan' => result
+          }
+        )
+      end
+
+      def error_scan(uuid, worker_id, result)
+        @collection.find(uuid: uuid).update_one(
+          '$set'=> { 
+            'status' => 'ERRORED',
+            'worker_id' => worker_id,
+            'scan' => result
+          }
+        )
+      end
+
+      def next_scan_in_queue()
+        @collection.find(status: "QUEUED").first
+      end
+
+      def find_recent_scans(ip, port, seconds_old)
+        results = []
+
+        # TODO: make this part of the query so it doesn't turn into a perf issue
+        @collection.find("target" => ip, "port" => port).each do |result|
+          if Time.now - result["_id"].generation_time < seconds_old
+            results << result
+          end
         end
-        
-        return nil
+
+        return results
       end
 
-      def fetch_cached_result(socket)
-        results = @collection.find("target" => socket["target"], "port" => socket["port"].to_i)
-        results = results.skip(results.count() - 1)
-        return nil if results.count.zero?
-        result = {}
-        results.each do |result|
-          result["uuid"] = result["uuid"]
-          result["start_time"] = result["scan"]["start_time"]
-          return result
-        end
+      def find_scans(ip, port)
+        @collection.find("target" => ip, "port" => port)
       end
     end
   end
