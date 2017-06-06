@@ -6,7 +6,6 @@ require 'secure_headers'
 require 'thin'
 require 'securerandom'
 require 'ssh_scan'
-require 'ssh_scan_api/job_queue'
 require 'ssh_scan_api/database'
 
 module SSHScan
