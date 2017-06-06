@@ -13,7 +13,6 @@ module SSHScan
   class API < Sinatra::Base
     if ENV['RACK_ENV'] == 'test'
       configure do
-        set :job_queue, SSHScan::JobQueue.new()
         set :authentication, false
         config_file = File.join(Dir.pwd, "./config/api/config.yml")
         opts = YAML.load_file(config_file)
@@ -108,54 +107,23 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         # Require authentication for this route only when auth is enabled
         authenticated? if settings.authentication == true
         
-        options = {}
-        options["policy"] = File.join(Dir.pwd, '/config/policies/mozilla_modern.yml')
-        options["socket"] = {
-          "target" => params["target"],
-          "port" => params["port"] ? params["port"] : 22
-        }
-        options["sockets"] = [options["socket"].values.join(":")]
-        options["policy_file"] = options["policy"]
-        options["force"] = params["force"] ? params["force"] : false
+        target = params["target"]
+        port = params["port"] ? params["port"] : 22
+        socket = {"target" => target, "port" => port}
 
-        unless options["force"] == 'true'
+        # Check DB to see if we have a recent scans (<= 5 min ago) for this target
+        results = settings.db.find_recent_scans(target, port, 300)
 
-          # Check the active job queue for duplicates (prevents queue spamming)
-          settings.job_queue.each do |job|
-            if options["socket"] == job["socket"]
-              return {
-                uuid: job["uuid"]
-              }.to_json
-            end
-          end
-
-          # Make an attempt to resolve hostname to pickup cached results and save on network i/o
-          begin
-            if options["socket"]["target"].fqdn?
-              ip_address = options["socket"]["target"].resolve_fqdn
-
-              if ip_address.ip_addr?
-                options["socket"]["target"] = ip_address
-              end
-            end
-          rescue
-            #nop
-          end
-
-          # Check for recently submit jobs that are already done (limits network i/o abuse)
-          available_result = settings.db.fetch_cached_result(options["socket"])
-          if available_result
-            if cache_valid?(available_result["start_time"])
-              return {
-                uuid: available_result["uuid"]
-              }.to_json
-            end
-          end
+        # If we have recent results, return that UUID, if not assign a new one
+        if results.any?
+          uuid = results.first["uuid"]
+        else
+          uuid = SecureRandom.uuid
+          settings.db.queue_scan(uuid, socket)
         end
-        options["uuid"] = SecureRandom.uuid
-        settings.job_queue.add(options)
+
         {
-          uuid: options["uuid"]
+          uuid: uuid
         }.to_json
       end
 
@@ -164,36 +132,27 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         authenticated? if settings.authentication == true
 
         uuid = params[:uuid]
-        return {"scan" => "not found"}.to_json if uuid.nil? || uuid.empty?
-        result = settings.db.find_scan_result(uuid)
-        return {"scan" => "not found"}.to_json if result.nil?
-        return result.to_json
-      end
 
-      post '/scan/results/delete' do
-        # Always require authentication for this route
-        authenticated?
+        # If we don't get a uuid, we don't know what scan to pick up
+        return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
 
-        uuid = params[:uuid]
+        result = settings.db.get_scan(uuid)
 
-        if uuid.nil? || uuid.empty?
-          return {"deleted" => "false"}.to_json
+        return {"scan" => "invalid uuid specified"}.to_json if result.nil?
+
+        case result["status"]
+        when "QUEUED"
+          return {"status" => "QUEUED"}.to_json
+        when "ERRRORED"
+          return {"status" => "ERRRORED"}.to_json
+        when "RUNNNING"
+          return {"status" => "RUNNNING"}.to_json
+        when "COMPLETED"
+          result["scan"]["status"] = "COMPLETED"
+          return result["scan"].to_json
         else
-          scan = settings.db.find_scan_result(uuid)
-          if scan.empty?
-            return {"deleted" => "false"}.to_json
-          else
-            settings.db.delete_scan(uuid)
-            return {"deleted" => "true"}.to_json
-          end
+          return {"scan" => "UNKNOWN"}.to_json
         end
-      end
-
-      get '/scan/results/delete/all' do
-        # Always require authentication for this route
-        authenticated?
-
-        settings.db.delete_all
       end
 
       get '/work' do
@@ -201,14 +160,21 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         authenticated?
 
         worker_id = params[:worker_id]
-        logger.warn("Worker #{worker_id} polls for Job")
-        job = settings.job_queue.next
-        if job.nil?
-          logger.warn("Worker #{worker_id} didn't get any work")
-          {"work" => false}.to_json
+
+        doc = settings.db.next_scan_in_queue
+
+        if doc.nil?
+          return {"work" => false}.to_json
         else
-          logger.warn("Worker #{worker_id} got job #{job[:uuid]}")
-          {"work" => job}.to_json
+          settings.db.run_scan(doc["uuid"])
+          socket = [doc["target"],doc["port"]].join(":")
+          {
+            "work" => {
+              "uuid" => doc["uuid"],
+              "policy" => File.join(Dir.pwd, '/config/policies/mozilla_modern.yml'),
+              "sockets" => [socket]
+            }
+          }.to_json
         end
       end
 
@@ -226,12 +192,22 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         if worker_id.empty? || uuid.empty?
           return {"accepted" => "false"}.to_json
         end
-        settings.stats.new_scan_request
-        settings.db.add_scan(worker_id, uuid, result, socket)
+
+        if result["error"]
+          settings.db.error_scan(uuid, worker_id, result)
+        else
+          settings.db.complete_scan(uuid, worker_id, result)
+        end
       end
 
       get '/stats' do
-        settings.stats.get_stats(settings.job_queue.size)
+        {
+          "QUEUED" => settings.db.queue_count,
+          "RUNNING" => settings.db.run_count,
+          "ERRORED" => settings.db.error_count,
+          "COMPLETED" => settings.db.complete_count,
+          "TOTAL" => settings.db.total_count
+        }.to_json
       end
 
       get '/__lbheartbeat__' do
@@ -264,7 +240,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :bind, options["bind"] || '127.0.0.1'
         set :server, "thin"
         set :logger, Logger.new(STDOUT)
-        set :job_queue, JobQueue.new()
         set :db, SSHScan::Database.from_hash(options)
         set :results, {}
         set :stats, SSHScan::Stats.new

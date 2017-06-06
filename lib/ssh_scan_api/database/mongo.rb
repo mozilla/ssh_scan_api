@@ -34,26 +34,34 @@ module SSHScan
         )
       end
 
-      def run_count()
+      def run_count
         @collection.count(status: 'RUNNING')
       end
 
-      def queue_count()
+      def queue_count
         @collection.count(status: 'QUEUED')
       end
 
-      def error_count()
+      def error_count
         @collection.count(status: 'ERRORED')
       end
 
-      def complete_count()
+      def complete_count
         @collection.count(status: 'COMPLETED')
+      end
+
+      def total_count
+        @collection.count
       end
 
       def run_scan(uuid)
         @collection.find(uuid: uuid).update_one(
           '$set'=> { 'status' => 'RUNNING' }
         )
+      end
+
+      def get_scan(uuid)
+        @collection.find(uuid: uuid).first
       end
 
       def complete_scan(uuid, worker_id, result)

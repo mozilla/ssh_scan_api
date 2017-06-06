@@ -41,8 +41,20 @@ module SSHScan
       @database.complete_count
     end
 
+    def total_count
+      @database.total_count
+    end
+
     def run_scan(uuid)
       @database.run_scan(uuid)
+    end
+
+    def get_scan(uuid)
+      @database.get_scan(uuid)
+    end
+
+    def queue_scan(uuid, socket)
+      @database.queue_scan(uuid, socket)
     end
 
     def complete_scan(uuid, worker_id, result)

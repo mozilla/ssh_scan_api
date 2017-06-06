@@ -64,6 +64,16 @@ describe SSHScan::Database do
     @abstract_database.complete_count
   end
 
+  it "should defer #queue_scan calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:queue_scan).with(uuid, socket)
+    @abstract_database.queue_scan(uuid, socket)
+  end
+
   it "should defer #run_scan calls to the specific DB implementation" do
     worker_id = SecureRandom.uuid
     uuid = SecureRandom.uuid
