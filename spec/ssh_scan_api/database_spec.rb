@@ -47,19 +47,4 @@ describe SSHScan::Database do
     @abstract_database.find_scan_result(uuid)
   end
 
-  it "should generate SQLite from a SQLite options set" do
-    temp_file = Tempfile.new('sqlite_database_file')
-
-    db_opts = {
-      "database" => {
-        "type" => "sqlite",
-        "file" => temp_file.path
-      }
-    }
-
-    database = SSHScan::Database.from_hash(db_opts)
-    expect(database).to be_kind_of(SSHScan::Database)
-    expect(database.database).to be_kind_of(SSHScan::DB::SQLite)
-  end
-
 end
