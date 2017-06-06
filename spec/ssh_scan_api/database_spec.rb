@@ -24,48 +24,108 @@ describe SSHScan::Database do
     expect(@abstract_database.respond_to?(:find_scans)).to be true
   end
 
-  it "should defer #add_scan calls to the specific DB implementation" do
+  it "should defer #run_count calls to the specific DB implementation" do
     worker_id = SecureRandom.uuid
     uuid = SecureRandom.uuid
     result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
     socket = {:target => "127.0.0.1", :port => 1337}
 
-    expect(@test_database).to receive(:add_scan).with(worker_id, uuid, result, socket)
-    @abstract_database.add_scan(worker_id, uuid, result, socket)
+    expect(@test_database).to receive(:run_count)
+    @abstract_database.run_count
   end
 
-  it "should defer #delete_scan calls to the specific DB implementation" do
+  it "should defer #queue_count calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
     uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
 
-    expect(@test_database).to receive(:delete_scan).with(uuid)
-    @abstract_database.delete_scan(uuid)
+    expect(@test_database).to receive(:queue_count)
+    @abstract_database.queue_count
   end
 
-  it "should defer #delete_all calls to the specific DB implementation" do
-    expect(@test_database).to receive(:delete_all)
-    @abstract_database.delete_all
-  end
-
-  it "should defer #find_scan_result calls to the specific DB implementation" do
+  it "should defer #error_count calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
     uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
 
-    expect(@test_database).to receive(:find_scan_result).with(uuid)
-    @abstract_database.find_scan_result(uuid)
+    expect(@test_database).to receive(:error_count)
+    @abstract_database.error_count
   end
 
-  it "should generate SQLite from a SQLite options set" do
-    temp_file = Tempfile.new('sqlite_database_file')
+  it "should defer #complete_count calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
 
-    db_opts = {
-      "database" => {
-        "type" => "sqlite",
-        "file" => temp_file.path
-      }
-    }
-
-    database = SSHScan::Database.from_hash(db_opts)
-    expect(database).to be_kind_of(SSHScan::Database)
-    expect(database.database).to be_kind_of(SSHScan::DB::SQLite)
+    expect(@test_database).to receive(:complete_count)
+    @abstract_database.complete_count
   end
 
+  it "should defer #run_scan calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:run_scan).with(uuid)
+    @abstract_database.run_scan(uuid)
+  end
+
+  it "should defer #complete_scan calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:complete_scan).with(uuid, worker_id, result)
+    @abstract_database.complete_scan(uuid, worker_id, result)
+  end
+
+  it "should defer #error_scan calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:error_scan).with(uuid, worker_id, result)
+    @abstract_database.error_scan(uuid, worker_id, result)
+  end
+
+  it "should defer #next_scan_in_queue calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:next_scan_in_queue)
+    @abstract_database.next_scan_in_queue
+  end
+
+  it "should defer #find_recent_scans calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+    ip = "127.0.0.1"
+    port = 1337
+    seconds_old = 2
+
+    expect(@test_database).to receive(:find_recent_scans).with(ip, port, seconds_old)
+    @abstract_database.find_recent_scans(ip, port, seconds_old)
+  end
+
+  it "should defer #find_scans calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+    ip = "127.0.0.1"
+    port = 1337
+
+    expect(@test_database).to receive(:find_scans).with(ip, port)
+    @abstract_database.find_scans(ip, port)
+  end
 end
