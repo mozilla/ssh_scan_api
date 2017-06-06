@@ -25,8 +25,6 @@ describe SSHScan::DB::MongoDb do
     result = {"ip" => "127.0.0.1", "port" => 1337, "foo" => "bar", "biz" => "baz"}
     socket = {"target" => "127.0.0.1", "port" => 1337}
 
-    temp_file = Tempfile.new('sqlite_database_file')
-
     @mongodb.add_scan(worker_id, uuid, result, socket)
 
     # Emulate the retrieval process
