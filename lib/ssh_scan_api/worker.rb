@@ -95,6 +95,7 @@ work?worker_id=#{@worker_id}"
       @logger.info("Started job: #{job["uuid"]}")
       scan_engine = SSHScan::ScanEngine.new
       job["fingerprint_database"] = File.join(File.dirname(__FILE__),"../../data/fingerprints.yml")
+      job["timeout"] = 5
       results = scan_engine.scan(job)
       @logger.info("Completed job: #{job["uuid"]}")
       return results
