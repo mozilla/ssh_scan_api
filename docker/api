@@ -1,6 +1,5 @@
 FROM ruby:latest
 MAINTAINER Jonathan Claudius
-RUN git clone https://github.com/mozilla/ssh_scan_api /app && \
-    cd app && \
+RUN COPY . /app && \
     gem install bundler && \
     bundle install
