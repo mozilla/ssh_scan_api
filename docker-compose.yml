@@ -2,7 +2,6 @@ version: '2'
 services:
     database:
       image: mongo:latest
-      command: 
       ports: "27017:27017"
       container_name: database
       restart: always
@@ -10,7 +9,7 @@ services:
       image: mozilla/ssh_scan_api
       command: /app/bin/ssh_scan_api
       ports: "8000:8000"
-      container_name: database
+      container_name: api
       restart: always
     worker:
       image: mozilla/ssh_scan_worker
