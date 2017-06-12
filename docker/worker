@@ -1,10 +1,4 @@
 FROM ruby:latest
 MAINTAINER Jonathan Claudius
 ENV PROJECT=github.com/mozilla/ssh_scan_api
-
-RUN mkdir /app
-ADD . /app
-WORKDIR /app
-
-RUN gem install bundler
-RUN bundle install
+RUN mkdir /app && cd /app && gem install bundler && bundle install
