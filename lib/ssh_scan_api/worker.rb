@@ -6,7 +6,7 @@ require 'net/https'
 module SSHScan
   class Worker
     def initialize(opts = {})
-      @server = opts["server"] || "127.0.0.1"
+      @server = ENV['sshscan.api.host'] || opts["server"] || "127.0.0.1"
       @scheme = opts["scheme"] || "http"
       @verify = opts["verify"] || "false"
       @port = opts["port"] || 8000
