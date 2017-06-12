@@ -222,7 +222,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
       configure do
         enable :logging
-        set :bind, options["bind"] || '127.0.0.1'
+        set :bind, ENV['sshscan.api.bind'] || options["bind"] || '127.0.0.1'
         set :server, "thin"
         set :logger, Logger.new(STDOUT)
         set :db, SSHScan::Database.from_hash(options)
