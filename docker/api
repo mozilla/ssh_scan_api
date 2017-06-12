@@ -1,5 +1,6 @@
 FROM ruby:latest
 MAINTAINER Jonathan Claudius
-RUN COPY . /app && \
+COPY . /app
+RUN cd /app && \
     gem install bundler && \
     bundle install
