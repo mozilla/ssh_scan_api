@@ -3,6 +3,6 @@ MAINTAINER Jonathan Claudius
 RUN mkdir /app && \
     cd /app && \
     git clone https://github.com/mozilla/ssh_scan_api && \
-    cd ssh_scan_api &&
+    cd ssh_scan_api && \
     gem install bundler && \
     bundle install
