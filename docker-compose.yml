@@ -1,10 +1,10 @@
 version: '2'
 services:
   database:
-    image: mongo:latest
+    image: 'mongo:latest'
     container_name: database
     volumes:
-      - mongodb
+      - 'mongodb:/datadb'
     restart: always
   api:
     build:
