@@ -2,26 +2,30 @@ version: '2'
 services:
   database:
     image: mongo:latest
-    ports:
-      - 27017
-    container_name: database.internal
+    container_name: database
     volumes:
-      - mongodb:/data/db
+      - mongodb
     restart: always
   api:
-    build: ./docker/api
+    build:
+      context: .
+      dockerfile: ./docker/api
     command: /app/bin/ssh_scan_api
     ports:
-      - 8000
+      - 8000:8000
     environment:
-      - database.host=database.internal
-    container_name: api.internal
-    link: database.internal
+      - sshscan.database.host=database
+    container_name: api
+    links:
+      - database
+      - worker
     restart: always
   worker:
     build: ./docker/worker
+      context: .
+      dockerfile: ./docker/api
     environment:
-      - api.host=api.internal
+      - sshscan.api.host=api
     command: /app/bin/ssh_scan_worker
     container_name: worker
     restart: always
