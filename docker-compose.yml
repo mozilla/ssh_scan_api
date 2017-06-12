@@ -21,7 +21,7 @@ services:
       - worker
     restart: always
   worker:
-    build: ./docker/worker
+    build:
       context: .
       dockerfile: ./docker/api
     environment:
