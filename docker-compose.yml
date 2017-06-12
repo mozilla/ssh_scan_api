@@ -23,7 +23,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: ./docker/api
+      dockerfile: ./docker/worker
     environment:
       - sshscan.api.host=api
     command: /app/bin/ssh_scan_worker
