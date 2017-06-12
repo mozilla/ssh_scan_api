@@ -6,6 +6,8 @@ services:
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null
+    networks:
+      - default
     volumes:
       - ./data/db:/data/db
     restart: always
@@ -22,6 +24,8 @@ services:
     links:
       - database
       - worker
+    networks:
+      - default
     restart: always
   worker:
     build:
@@ -31,4 +35,6 @@ services:
       - sshscan.api.host=api
     command: /app/bin/ssh_scan_worker
     container_name: worker
+    networks:
+      - default
     restart: always
