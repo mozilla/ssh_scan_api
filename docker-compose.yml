@@ -17,9 +17,9 @@ services:
       dockerfile: ./docker/api
     command: /app/bin/ssh_scan_api
     ports:
-      - 127.0.0.1:8000:8000
+      - 8000:8000
     environment:
-      - sshscan.api.bind=0.0.0.0
+      - sshscan.api.bind=api
       - sshscan.database.host=database
     container_name: api
     links:
