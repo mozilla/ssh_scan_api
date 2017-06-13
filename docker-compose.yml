@@ -2,7 +2,6 @@ version: '2'
 services:
   database:
     image: mongo:latest
-    container_name: database
     environment:
       - MONGO_DATA_DIR=/data/db
       - MONGO_LOG_DIR=/dev/null
@@ -22,10 +21,8 @@ services:
       - sshscan.api.bind=api
       - sshscan.database.host=database
       - sshscan.worker.token=EXAMPLE_TOKEN_CHANGE_ME
-    container_name: api
     links:
       - database
-      - worker
     networks:
       - default
     restart: always
@@ -37,7 +34,8 @@ services:
       - sshscan.api.host=api
       - sshscan.worker.token=EXAMPLE_TOKEN_CHANGE_ME
     command: /app/bin/ssh_scan_worker
-    container_name: worker
+    links:
+      - api
     networks:
       - default
     restart: always
