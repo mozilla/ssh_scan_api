@@ -156,7 +156,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           {
             "work" => {
               "uuid" => doc["uuid"],
-              "policy" => File.join(Dir.pwd, '/config/policies/mozilla_modern.yml'),
+              "policy" => File.join(Dir.pwd, './config/policies/mozilla_modern.yml'),
               "sockets" => [socket]
             }
           }.to_json
