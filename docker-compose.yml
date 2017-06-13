@@ -21,6 +21,7 @@ services:
     environment:
       - sshscan.api.bind=api
       - sshscan.database.host=database
+      - sshscan.worker.token=d63920d7-82d1-4781-a6f9-369528c1f179
     container_name: api
     links:
       - database
@@ -34,6 +35,7 @@ services:
       dockerfile: ./docker/worker
     environment:
       - sshscan.api.host=api
+      - sshscan.worker.token=d63920d7-82d1-4781-a6f9-369528c1f179
     command: /app/bin/ssh_scan_worker
     container_name: worker
     networks:

@@ -24,6 +24,10 @@ module SSHScan
         end
       end
 
+      if ENV['sshscan.worker.token'] == token
+        return true
+      end
+
       return false
     end
   end

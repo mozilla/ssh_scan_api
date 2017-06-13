@@ -15,7 +15,7 @@ module SSHScan
       @poll_restore_interval = opts["poll_restore_interval"] || 5 # in seconds
       @worker_id = SecureRandom.uuid
       @verify_ssl = false
-      @auth_token = opts["auth_token"] || nil
+      @auth_token = ENV['sshscan.worker.token'] || opts["auth_token"] || nil
     end
 
     def setup_logger(logger)
