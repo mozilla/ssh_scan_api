@@ -6,7 +6,7 @@ require 'net/https'
 module SSHScan
   class Worker
     def initialize(opts = {})
-      @server = opts["server"] || "127.0.0.1"
+      @server = ENV['sshscan.api.host'] || opts["server"] || "127.0.0.1"
       @scheme = opts["scheme"] || "http"
       @verify = opts["verify"] || "false"
       @port = opts["port"] || 8000
@@ -15,7 +15,7 @@ module SSHScan
       @poll_restore_interval = opts["poll_restore_interval"] || 5 # in seconds
       @worker_id = SecureRandom.uuid
       @verify_ssl = false
-      @auth_token = opts["auth_token"] || nil
+      @auth_token = ENV['sshscan.worker.token'] || opts["auth_token"] || nil
     end
 
     def setup_logger(logger)
@@ -95,6 +95,7 @@ work?worker_id=#{@worker_id}"
       @logger.info("Started job: #{job["uuid"]}")
       scan_engine = SSHScan::ScanEngine.new
       job["fingerprint_database"] = File.join(File.dirname(__FILE__),"../../data/fingerprints.yml")
+      job["policy"] = File.join(File.dirname(__FILE__),"../../config/policies/mozilla_modern.yml")
       job["timeout"] = 5
       results = scan_engine.scan(job)
       @logger.info("Completed job: #{job["uuid"]}")

@@ -7,8 +7,8 @@ import time
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
-api_server = "https://sshscan.rubidus.com"
-#api_server = "http://127.0.0.1:8000"
+#api_server = "https://sshscan.rubidus.com"
+api_server = "http://127.0.0.1:8000"
 
 eprint("[+] Submitting scan request for ssh.mozilla.com")
 resp = requests.post(api_server + "/api/v1/scan?target=ssh.mozilla.com")

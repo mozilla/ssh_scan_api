@@ -1,0 +1,41 @@
+version: '2'
+services:
+  database:
+    image: mongo:latest
+    environment:
+      - MONGO_DATA_DIR=/data/db
+      - MONGO_LOG_DIR=/dev/null
+    networks:
+      - default
+    volumes:
+      - ./data/db:/data/db
+    restart: always
+  api:
+    build:
+      context: .
+      dockerfile: ./docker/api
+    command: /app/bin/ssh_scan_api
+    ports:
+      - 8000:8000
+    environment:
+      - sshscan.api.bind=api
+      - sshscan.database.host=database
+      - sshscan.worker.token=EXAMPLE_TOKEN_CHANGE_ME
+    links:
+      - database
+    networks:
+      - default
+    restart: always
+  worker:
+    build:
+      context: .
+      dockerfile: ./docker/worker
+    environment:
+      - sshscan.api.host=api
+      - sshscan.worker.token=EXAMPLE_TOKEN_CHANGE_ME
+    command: /app/bin/ssh_scan_worker
+    links:
+      - api
+    networks:
+      - default
+    restart: always

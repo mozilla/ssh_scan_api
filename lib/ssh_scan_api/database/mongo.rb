@@ -15,7 +15,7 @@ module SSHScan
       # Helps us create a SSHScan::DB::MongoDB object with a hash
       def self.from_hash(opts)
         name = opts["name"]
-        server = opts["server"]
+        server = ENV['sshscan.database.host'] || opts["server"]
         port = opts["port"]
         socket = server + ":" + port.to_s
 
