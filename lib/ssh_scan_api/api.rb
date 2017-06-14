@@ -99,7 +99,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         # Let's stop garbage targets in their tracks
         if !target.ip_addr? && !target.fqdn?
           return {"error" => "invalid target"}.to_json
-        elsif target.ip_addr? && target.starts_with?("127")
+        elsif target.ip_addr? && target.start_with?("127")
           return {"error" => "invalid target"}.to_json 
         end
 
