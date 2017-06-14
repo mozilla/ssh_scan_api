@@ -193,11 +193,12 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
       get '/stats' do
         {
-          "QUEUED" => settings.db.queue_count,
-          "RUNNING" => settings.db.run_count,
-          "ERRORED" => settings.db.error_count,
-          "COMPLETED" => settings.db.complete_count,
-          "TOTAL" => settings.db.total_count,
+          "SCAN_STATES" => {
+            "QUEUED" => settings.db.queue_count,
+            "RUNNING" => settings.db.run_count,
+            "ERRORED" => settings.db.error_count,
+            "COMPLETED" => settings.db.complete_count,
+          },
           "GRADE_REPORT" => settings.db.grade_report
         }.to_json
       end
