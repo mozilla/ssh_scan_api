@@ -113,6 +113,29 @@ describe SSHScan::DB::MongoDb do
     expect(@mongodb.error_count).to eql(1)
   end
 
+  it "should give me the grade distributions we have" do
+    results = []
+
+    1.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "A"}}}
+    2.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "B"}}}
+    3.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "C"}}}
+    4.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "D"}}}
+    5.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "F"}}}
+
+    socket = {"target" => "127.0.0.1", "port" => 1337}
+
+    results.each do |result|
+      uuid = SecureRandom.uuid
+      worker_id = SecureRandom.uuid
+      @mongodb.queue_scan(uuid, socket)
+      @mongodb.run_scan(uuid)
+      @mongodb.complete_scan(uuid, worker_id, result)
+    end
+
+    expect(@mongodb.grade_report).to be_kind_of(Hash)
+    expect(@mongodb.grade_report).to eql({"A"=>1, "B"=>2, "C"=>3, "D"=>4, "F"=>5})
+  end
+
   it "should be able to find all the scans via #find_scans" do
     uuid1 = SecureRandom.uuid
     uuid2 = SecureRandom.uuid
