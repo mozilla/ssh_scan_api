@@ -96,6 +96,11 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         port = params["port"] ? params["port"] : 22
         socket = {"target" => target, "port" => port}
 
+        # Let's stop garbage targets in their tracks
+        if !target.ip_addr? && !target.fqdn?
+          return {"error" => "invalid target"}.to_json
+        end
+
         # Check DB to see if we have a recent scans (<= 5 min ago) for this target
         results = settings.db.find_recent_scans(target, port, 300)
 
@@ -123,7 +128,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
         result = settings.db.get_scan(uuid)
 
-        return {"scan" => "invalid uuid specified"}.to_json if result.nil?
+        return {"error" => "invalid uuid specified"}.to_json if result.nil?
 
         case result["status"]
         when "QUEUED"
