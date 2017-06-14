@@ -195,7 +195,8 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           "RUNNING" => settings.db.run_count,
           "ERRORED" => settings.db.error_count,
           "COMPLETED" => settings.db.complete_count,
-          "TOTAL" => settings.db.total_count
+          "TOTAL" => settings.db.total_count,
+          "GRADE_REPORT" => settings.db.grade_report
         }.to_json
       end
 

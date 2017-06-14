@@ -53,6 +53,10 @@ module SSHScan
       @database.get_scan(uuid)
     end
 
+    def grade_report
+      @database.grade_report
+    end
+
     def queue_scan(uuid, socket)
       @database.queue_scan(uuid, socket)
     end

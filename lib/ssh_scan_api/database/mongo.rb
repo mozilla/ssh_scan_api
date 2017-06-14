@@ -84,6 +84,17 @@ module SSHScan
         )
       end
 
+      def grade_report
+        grades = ["A", "B", "C", "D", "F"]
+        histogram = {}
+
+        grades.each do |grade|
+          histogram[grade] = @collection.count("scan.compliance.grade": grade)
+        end
+        
+        return histogram
+      end
+
       def next_scan_in_queue()
         @collection.find(status: "QUEUED").first
       end
