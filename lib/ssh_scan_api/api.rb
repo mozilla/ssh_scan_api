@@ -10,15 +10,14 @@ require 'ssh_scan_api/database'
 
 module SSHScan
   class API < Sinatra::Base
-    if ENV['RACK_ENV'] == 'test'
-      configure do
-        set :authentication, false
-        config_file = File.join(Dir.pwd, "./config/api/config.yml")
-        opts = YAML.load_file(config_file)
-        opts["config_file"] = config_file
-        set :db, SSHScan::Database.from_hash(opts)
-        set :environment, :production
-      end
+    configure do
+      set :authentication, false
+      config_file = File.join(Dir.pwd, "./config/api/config.yml")
+      opts = YAML.load_file(config_file)
+      opts["config_file"] = config_file
+      set :db, SSHScan::Database.from_hash(opts)
+      set :environment, :production
+      set :allowed_ports, [22]
     end
 
     # Configure all the secure headers we want to use
@@ -93,7 +92,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         authenticated? if settings.authentication == true
         
         target = params["target"]
-        port = params["port"] ? params["port"] : 22
+        port = params["port"] ? params["port"].to_i : 22
         socket = {"target" => target, "port" => port}
 
         # Let's stop garbage targets in their tracks
