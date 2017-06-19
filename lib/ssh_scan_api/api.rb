@@ -103,6 +103,11 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           return {"error" => "invalid target"}.to_json 
         end
 
+        # Let's make sure we only scan ports we're allowed to scan
+        if !settings.allowed_ports.include?(port)
+          return {"error" => "invalid port"}.to_json 
+        end
+
         # Check DB to see if we have a recent scans (<= 5 min ago) for this target
         results = settings.db.find_recent_scans(target, port, 300)
 
@@ -240,6 +245,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :authenticator, SSHScan::Authenticator.from_config_file(
           options["config_file"]
         )
+        set :allowed_ports, options["allowed_ports"]
         set :protection, false
       end
 
