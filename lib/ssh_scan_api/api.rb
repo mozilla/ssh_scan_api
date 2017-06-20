@@ -10,14 +10,16 @@ require 'ssh_scan_api/database'
 
 module SSHScan
   class API < Sinatra::Base
-    configure do
-      set :authentication, false
-      config_file = File.join(Dir.pwd, "./config/api/config.yml")
-      opts = YAML.load_file(config_file)
-      opts["config_file"] = config_file
-      set :db, SSHScan::Database.from_hash(opts)
-      set :environment, :production
-      set :allowed_ports, [22]
+    if ENV['RACK_ENV'] == 'test'
+      configure do
+        set :authentication, false
+        config_file = File.join(Dir.pwd, "./config/api/config.yml")
+        opts = YAML.load_file(config_file)
+        opts["config_file"] = config_file
+        set :db, SSHScan::Database.from_hash(opts)
+        set :environment, :production
+        set :allowed_ports, [22]
+      end
     end
 
     # Configure all the secure headers we want to use
