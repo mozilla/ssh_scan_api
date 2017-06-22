@@ -23,13 +23,6 @@ matrix:
       - LABEL=unit_tests
     services:
       - mongodb
-  - rvm: 2.3.0
-    env:
-      - LABEL=src_integration_tests
-    script:
-      - bundle install
-      - chmod 755 ./spec/ssh_scan/integration.sh
-      - ./spec/ssh_scan/integration.sh
   - rvm: 2.4.1
     env:
       - LABEL=docker_build_tests
