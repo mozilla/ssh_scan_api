@@ -5,6 +5,10 @@
 # The TCP port that the service should use
 port: 8000
 
+# The TCP ports that the API is willing to queue and thus let workers scan
+allowed_ports:
+  - 22
+
 # API Tokens (a crude mechanism for adding auth to your API)
 #authentication: true
 authentication: false

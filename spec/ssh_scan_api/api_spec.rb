@@ -31,7 +31,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
   it "should be able to POST /scan correctly" do
     bad_ip = "192.168.255.255"
-    port = "999"
+    port = 22
     post "/api/v1/scan", {:target => bad_ip, :port => port}
     expect(last_response.status).to eql(200)
     expect(last_response["Content-Type"]).to eql("application/json")
@@ -57,7 +57,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
   it "should return string uuid" do
     ip = "192.168.1.1"
-    port = "22"
+    port = 22
     post "/api/v1/scan", {:target => ip, :port => port}
     expect(last_response.status).to eql(200)
     expect(last_response.body).to be_kind_of(::String)

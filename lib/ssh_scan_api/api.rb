@@ -18,6 +18,7 @@ module SSHScan
         opts["config_file"] = config_file
         set :db, SSHScan::Database.from_hash(opts)
         set :environment, :production
+        set :allowed_ports, [22]
       end
     end
 
@@ -93,7 +94,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         authenticated? if settings.authentication == true
         
         target = params["target"]
-        port = params["port"] ? params["port"] : 22
+        port = params["port"] ? params["port"].to_i : 22
         socket = {"target" => target, "port" => port}
 
         # Let's stop garbage targets in their tracks
@@ -101,6 +102,11 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           return {"error" => "invalid target"}.to_json
         elsif target.ip_addr? && target.start_with?("127")
           return {"error" => "invalid target"}.to_json 
+        end
+
+        # Let's make sure we only scan ports we're allowed to scan
+        if !settings.allowed_ports.include?(port)
+          return {"error" => "invalid port"}.to_json 
         end
 
         # Check DB to see if we have a recent scans (<= 5 min ago) for this target
@@ -240,6 +246,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :authenticator, SSHScan::Authenticator.from_config_file(
           options["config_file"]
         )
+        set :allowed_ports, options["allowed_ports"]
         set :protection, false
       end
 
