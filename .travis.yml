@@ -23,3 +23,10 @@ matrix:
       - LABEL=unit_tests
     services:
       - mongodb
+  - rvm: 2.4.1
+    env:
+      - LABEL=docker_build_tests
+    services:
+      - docker
+    script:
+      - docker-compose build
