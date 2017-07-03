@@ -97,10 +97,14 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         socket = {"target" => target, "port" => port}
 
         # Let's stop garbage targets in their tracks
-        if !target.ip_addr? && !target.fqdn?
+        if target.nil? || target.empty?
+          return {"error" => "invalid target"}.to_json
+        elsif target.downcase == "localhost"
+          return {"error" => "invalid target"}.to_json
+        elsif !target.ip_addr? && !target.fqdn?
           return {"error" => "invalid target"}.to_json
         elsif target.ip_addr? && target.start_with?("127")
-          return {"error" => "invalid target"}.to_json 
+          return {"error" => "invalid target"}.to_json
         end
 
         # Check DB to see if we have a recent scans (<= 5 min ago) for this target
