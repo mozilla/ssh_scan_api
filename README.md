@@ -1,6 +1,10 @@
 # ssh_scan_api
 
-[![Coverage Status](https://coveralls.io/repos/github/mozilla/ssh_scan_api/badge.svg)](https://coveralls.io/github/mozilla/ssh_scan_api)
+[![Build Status](https://secure.travis-ci.org/mozilla/ssh_scan_api.png)](http://travis-ci.org/mozilla/ssh_scan_api)
+[![Code Climate](https://codeclimate.com/github/mozilla/ssh_scan_api.png)](https://codeclimate.com/github/mozilla/ssh_scan_api)
+[![Gem Version](https://badge.fury.io/rb/ssh_scan.svg)](https://badge.fury.io/rb/ssh_scan_api)
+[![Join the chat at https://gitter.im/mozilla-ssh_scan/Lobby](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mozilla-ssh_scan/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Coverage Status](https://coveralls.io/repos/github/mozilla/ssh_scan_api/badge.svg?branch=master)](https://coveralls.io/github/mozilla/ssh_scan_api?branch=master)
 
 A web api to scale ssh_scan operations
 
