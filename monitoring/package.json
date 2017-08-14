@@ -1,7 +1,7 @@
 {
-  "name": "ssh-observatory-monitor",
+  "name": "ssh-scan-api-monitor",
   "version": "1.0.0",
   "description": "A monitor function to ensure the production SSH Scan API is still functioning as expected",
   "author": "Jonathan Claudius",
-  "license": "MIT"
+  "license": "MPL"
 }
