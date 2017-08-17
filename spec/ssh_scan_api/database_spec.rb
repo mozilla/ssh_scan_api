@@ -22,6 +22,7 @@ describe SSHScan::Database do
     expect(@abstract_database.respond_to?(:next_scan_in_queue)).to be true
     expect(@abstract_database.respond_to?(:find_recent_scans)).to be true
     expect(@abstract_database.respond_to?(:find_scans)).to be true
+    expect(@abstract_database.respond_to?(:queued_max_age)).to be true
   end
 
   it "should defer #run_count calls to the specific DB implementation" do

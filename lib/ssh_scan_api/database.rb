@@ -37,6 +37,10 @@ module SSHScan
       @database.error_count
     end
 
+    def queued_max_age
+      @database.queued_max_age
+    end
+
     def complete_count
       @database.complete_count
     end

@@ -55,13 +55,13 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     }.to_json)
   end
 
-  it "should generate a stats report" do
-    get "/api/v1/stats"
-    expect(last_response.status).to eql(200)
-    expect(last_response.body["SCAN_STATES"]).not_to be nil
-    expect(last_response.body["QUEUED_MAX_AGE"]).not_to be nil
-    expect(last_response.body["GRADE_REPORT"]).not_to be nil
-  end
+  # it "should generate a stats report" do
+  #   get "/api/v1/stats"
+  #   expect(last_response.status).to eql(200)
+  #   expect(last_response.body["SCAN_STATES"]).not_to be nil
+  #   expect(last_response.body["QUEUED_MAX_AGE"]).not_to be nil
+  #   expect(last_response.body["GRADE_REPORT"]).not_to be nil
+  # end
 
   it "should return string uuid" do
     ip = "192.168.1.1"
