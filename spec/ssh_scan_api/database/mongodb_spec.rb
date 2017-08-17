@@ -166,4 +166,33 @@ describe SSHScan::DB::MongoDb do
     doc = docs.first
     expect(doc["uuid"]).to eql(uuid2)
   end
+
+  it "should be able to find the max queue age" do
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
+
+    socket1 = {"target" => "127.0.0.1", "port" => 1337}
+    socket2 = {"target" => "127.0.0.2", "port" => 1337}
+
+    @mongodb.queue_scan(uuid1, socket1)
+    sleep 5
+    @mongodb.queue_scan(uuid2, socket2)
+
+    age = @mongodb.queued_max_age
+
+    expect(age).to be > 5.0
+    expect(age).to be < 6.0
+  end
+
+  it "should return zero when there are no queued scans" do
+    uuid1 = SecureRandom.uuid
+    socket1 = {"target" => "127.0.0.1", "port" => 1337}
+
+    @mongodb.queue_scan(uuid1, socket1)
+    @mongodb.run_scan(uuid1)
+
+    age = @mongodb.queued_max_age
+    expect(age).to eql(0)
+  end
+
 end
