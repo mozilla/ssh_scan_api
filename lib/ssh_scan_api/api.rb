@@ -7,6 +7,7 @@ require 'thin'
 require 'securerandom'
 require 'ssh_scan'
 require 'ssh_scan_api/database'
+require 'ssh_scan_api/target_validator'
 
 module SSHScan
   class API < Sinatra::Base
@@ -98,13 +99,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         socket = {"target" => target, "port" => port}
 
         # Let's stop garbage targets in their tracks
-        if target.nil? || target.empty?
-          return {"error" => "invalid target"}.to_json
-        elsif target.downcase == "localhost"
+        if settings.target_validator.invalid?(target)
           return {"error" => "invalid target"}.to_json
         elsif !target.ip_addr? && !target.fqdn?
-          return {"error" => "invalid target"}.to_json
-        elsif target.ip_addr? && target.start_with?("127")
           return {"error" => "invalid target"}.to_json
         end
 
@@ -245,6 +242,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :server, "thin"
         set :logger, Logger.new(STDOUT)
         set :db, SSHScan::Database.from_hash(options)
+        set :target_validator, SSHScan::TargetValidator.new(options["config_file"])
         set :results, {}
         set :stats, SSHScan::Stats.new
         set :authentication, options["authentication"]
