@@ -30,6 +30,7 @@ module SSHScan
           "port" => socket["port"].to_i,
           "status" => "QUEUED",
           "scan" => nil,
+          "queue_time" => Time.now,
           "worker_id" => nil,
         )
       end
@@ -52,6 +53,20 @@ module SSHScan
 
       def total_count
         @collection.count
+      end
+
+      # The age of the oldest record in QUEUED state, in seconds
+      def queued_max_age
+        max_age = 0
+        
+        @collection.find(status: 'QUEUED').each do |item|
+          age = Time.now - item["queue_time"]
+          if age > max_age
+            max_age = age
+          end
+        end
+
+        return max_age
       end
 
       def run_scan(uuid)
