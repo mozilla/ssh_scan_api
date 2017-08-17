@@ -18,6 +18,7 @@ module SSHScan
         opts = YAML.load_file(config_file)
         opts["config_file"] = config_file
         set :db, SSHScan::Database.from_hash(opts)
+        set :target_validator, SSHScan::TargetValidator.new()
         set :environment, :production
         set :allowed_ports, [22]
       end
