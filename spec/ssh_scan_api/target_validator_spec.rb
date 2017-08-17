@@ -66,6 +66,9 @@ describe SSHScan::TargetValidator do
     expect(target_validator.valid?("::1")).to be false
     expect(target_validator.valid?("localhost")).to be false
     expect(target_validator.valid?("github.com")).to be true
+    expect(target_validator.valid?("192.168.1.1")).to be false
+    expect(target_validator.valid?("172.18.1.1")).to be false
+    expect(target_validator.valid?("10.1.1.1")).to be false
   end
 
 end
