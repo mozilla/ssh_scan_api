@@ -9,15 +9,26 @@ module SSHScan
       else
         raise "unrecognized config format, must be hash or string"
       end
+
+      @valid_char_list = ("0".."9").to_a + ("a".."z").to_a + ("A".."Z").to_a + [":", "."]
+    end
+
+    def invalid_char?(target_string)
+      target_string.chars.each do |char|
+        return true unless @valid_char_list.include?(char)
+      end
+
+      return false
     end
 
     def invalid?(target_string)
-      !valid?
+      !valid?(target_string)
     end
 
     def valid?(target_string)
       return false unless target_string.is_a?(String)
       return false if target_string.empty?
+      return false if invalid_char?(target_string)
 
       if @config["invalid_target_regexes"]
         @config["invalid_target_regexes"].each do |invalid_regex|

@@ -43,12 +43,11 @@ database:
 
 # Define targets that we feel are invalid targets for scanning (customize however you like, these are our defaults)
 invalid_target_regexes:
-  - ^127\.                       # Forbid IPv4 localhosts
-  - ^::1                         # Forbid IPv6 localhosts
-  - ^10\.                        # Forbid RFC1918
-  - ^192\.168                    # Forbid RFC1918
+  - ^127\. # Forbid IPv4 localhosts
+  - ^::1  # Forbid IPv6 localhosts
+  - ^10\. # Forbid RFC1918
+  - ^192\.168 # Forbid RFC1918
   - ^172\.(1[6-9]|2[0-9]|3[0-1]) # Forbid RFC1918
-  
 
 invalid_target_strings:
   - localhost   # Forbid localhost ref verbatim

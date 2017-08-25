@@ -71,4 +71,20 @@ describe SSHScan::TargetValidator do
     expect(target_validator.valid?("10.1.1.1")).to be false
   end
 
+  it "should invalid char on any invalid char" do
+    target_validator = SSHScan::TargetValidator.new()
+
+    # individual chars
+    expect(target_validator.invalid_char?("/")).to be true
+    expect(target_validator.invalid_char?("a")).to be false
+    expect(target_validator.invalid_char?("A")).to be false
+    expect(target_validator.invalid_char?("1")).to be false
+    expect(target_validator.invalid_char?(":")).to be false
+    expect(target_validator.invalid_char?(".")).to be false
+
+    # parent valid?/invalid? checking of the same thing (but as a substring)
+    expect(target_validator.invalid?("http://mywebsite")).to be true
+    expect(target_validator.valid?("a.b.c")).to be true
+  end
+
 end
