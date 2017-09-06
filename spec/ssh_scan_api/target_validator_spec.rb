@@ -81,6 +81,10 @@ describe SSHScan::TargetValidator do
     expect(target_validator.invalid_char?("1")).to be false
     expect(target_validator.invalid_char?(":")).to be false
     expect(target_validator.invalid_char?(".")).to be false
+    expect(target_validator.invalid_char?(" ")).to be true
+    expect(target_validator.invalid_char?("|")).to be true
+    expect(target_validator.invalid_char?("&")).to be true
+    expect(target_validator.invalid_char?(";")).to be true
 
     # parent valid?/invalid? checking of the same thing (but as a substring)
     expect(target_validator.invalid?("http://mywebsite")).to be true
