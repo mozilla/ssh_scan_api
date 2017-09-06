@@ -250,6 +250,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :authenticator, SSHScan::Authenticator.from_config_file(
           options["config_file"]
         )
+        set :environment, :production
         set :allowed_ports, options["allowed_ports"]
         set :protection, false
       end
