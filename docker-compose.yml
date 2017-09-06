@@ -9,6 +9,10 @@ services:
       - default
     volumes:
       - ./data/db:/data/db
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://mozdef_logging_agent:514"
     restart: always
   api:
     build:
@@ -25,6 +29,10 @@ services:
       - database
     networks:
       - default
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://mozdef_logging_agent:514"
     restart: always
   worker:
     build:
@@ -36,6 +44,23 @@ services:
     command: /app/bin/ssh_scan_worker
     links:
       - api
+    networks:
+      - default
+    logging:
+      driver: "syslog"
+      options:
+        syslog-address: "tcp://mozdef_logging_agent:514"
+    restart: always
+  mozdef_logging_agent:
+    build:
+      context: .
+      dockerfile: ./docker/mozdef_logging_agent
+    command: INSERT_COMMAND
+    environment:
+      - INSERT_SECRET_NAME_AND_DEFAULT_VALUE_EXAMPLE1
+      - INSERT_SECRET_NAME_AND_DEFAULT_VALUE_EXAMPLE2
+    ports:
+      - 514:514
     networks:
       - default
     restart: always
