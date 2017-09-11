@@ -10,7 +10,7 @@ module SSHScan
         raise "unrecognized config format, must be hash or string"
       end
 
-      @valid_char_list = ("0".."9").to_a + ("a".."z").to_a + ("A".."Z").to_a + [":", "."]
+      @valid_char_list = ("0".."9").to_a + ("a".."z").to_a + ("A".."Z").to_a + [":", ".", "-"]
     end
 
     def invalid_char?(target_string)
