@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_dependency('sinatra-contrib')
   s.add_dependency('thin')
   s.add_dependency('haml')
-  s.add_dependency('secure_headers')
+  s.add_dependency('secure_headers', '3.6.4')
   s.add_development_dependency('rack-test')
   s.add_development_dependency('pry')
   s.add_development_dependency('rspec', '~> 3.0')
