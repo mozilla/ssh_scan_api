@@ -61,6 +61,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     expect(last_response.body["SCAN_STATES"]).not_to be nil
     expect(last_response.body["QUEUED_MAX_AGE"]).not_to be nil
     expect(last_response.body["GRADE_REPORT"]).not_to be nil
+    expect(last_response.body["AUTH_METHOD_REPORT"]).not_to be nil
   end
 
   # it "should return string uuid" do
