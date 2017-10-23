@@ -139,9 +139,9 @@ describe SSHScan::DB::MongoDb do
   it "should give me the auth method distributions we have" do
     results = []
 
-    results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["publickey"]}}
-    results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["password"]}}
-    results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["publickey", "password"]}}
+    results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["publickey"]}
+    results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["password"]}
+    results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["publickey", "password"]}
 
     socket = {"target" => "127.0.0.1", "port" => 1337}
 
