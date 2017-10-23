@@ -208,7 +208,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
             "COMPLETED" => settings.db.complete_count,
           },
           "QUEUED_MAX_AGE" => settings.db.queued_max_age,
-          "GRADE_REPORT" => settings.db.grade_report
+          "GRADE_REPORT" => settings.db.grade_report,
           "AUTH_METHOD_REPORT" => settings.db.auth_method_report
         }.to_json
       end
