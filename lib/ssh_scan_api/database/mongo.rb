@@ -99,6 +99,21 @@ module SSHScan
         )
       end
 
+      def auth_method_report
+        auth_methods = [
+          "publickey",
+          "password"
+        ]
+
+        histogram = {}
+
+        auth_methods.each do |auth_method|
+          histogram[auth_method] = @collection.count("scan.auth_methods": auth_method)
+        end
+
+        return histogram
+      end
+
       def grade_report
         grades = ["A", "B", "C", "D", "F"]
         histogram = {}

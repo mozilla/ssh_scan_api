@@ -57,6 +57,10 @@ module SSHScan
       @database.get_scan(uuid)
     end
 
+    def auth_method_report
+      @database.auth_method_report
+    end
+
     def grade_report
       @database.grade_report
     end
