@@ -40,6 +40,7 @@ module SSHScan
       config.referrer_policy = "no-referrer"
       config.csp = {
         default_src: ["'none'"],
+        script_src: ["'none'"],
         frame_ancestors: ["'none'"],
         upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
       }
