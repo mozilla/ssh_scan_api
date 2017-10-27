@@ -35,12 +35,28 @@ module SSHScan
         )
       end
 
+      def batch_queue_scan(uuid, socket)
+        @collection.insert_one(
+          "uuid" => uuid,
+          "target" => socket["target"],
+          "port" => socket["port"].to_i,
+          "status" => "BATCH_QUEUED",
+          "scan" => nil,
+          "queue_time" => Time.now,
+          "worker_id" => nil,
+        )
+      end
+
       def run_count
         @collection.count(status: 'RUNNING')
       end
 
       def queue_count
         @collection.count(status: 'QUEUED')
+      end
+
+      def batch_queue_count
+        @collection.count(status: 'BATCH_QUEUED')
       end
 
       def error_count
@@ -125,7 +141,11 @@ module SSHScan
         return histogram
       end
 
-      def next_scan_in_queue()
+      def next_scan_in_batch_queue
+        @collection.find(status: "BATCH_QUEUED").first
+      end
+
+      def next_scan_in_queue
         @collection.find(status: "QUEUED").first
       end
 

@@ -96,6 +96,11 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         # Require authentication for this route only when auth is enabled
         authenticated? if settings.authentication == true
         
+        batch = false
+        if params["batch"]
+          batch = true
+        end
+
         target = params["target"]
         port = params["port"] ? params["port"].to_i : 22
         socket = {"target" => target, "port" => port}
@@ -120,7 +125,12 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           uuid = results.first["uuid"]
         else
           uuid = SecureRandom.uuid
-          settings.db.queue_scan(uuid, socket)
+
+          if batch == true
+            settings.db.batch_queue_scan(uuid, socket)
+          else
+            settings.db.queue_scan(uuid, socket)
+          end
         end
 
         {
@@ -165,6 +175,10 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         doc = settings.db.next_scan_in_queue
 
         if doc.nil?
+          doc = settings.db.next_scan_in_batch_queue
+        end
+
+        if doc.nil?
           return {"work" => false}.to_json
         else
           settings.db.run_scan(doc["uuid"])
@@ -204,6 +218,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         {
           "SCAN_STATES" => {
             "QUEUED" => settings.db.queue_count,
+            "BATCH_QUEUED" => settings.db.batch_queue_count,
             "RUNNING" => settings.db.run_count,
             "ERRORED" => settings.db.error_count,
             "COMPLETED" => settings.db.complete_count,

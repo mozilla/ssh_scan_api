@@ -33,6 +33,10 @@ module SSHScan
       @database.queue_count
     end
 
+    def batch_queue_count
+      @database.batch_queue_count
+    end
+
     def error_count
       @database.error_count
     end
@@ -69,12 +73,20 @@ module SSHScan
       @database.queue_scan(uuid, socket)
     end
 
+    def batch_queue_scan(uuid, socket)
+      @database.batch_queue_scan(uuid, socket)
+    end
+
     def complete_scan(uuid, worker_id, result)
       @database.complete_scan(uuid, worker_id, result)
     end
 
     def error_scan(uuid, worker_id, result)
       @database.error_scan(uuid, worker_id, result)
+    end
+
+    def next_scan_in_batch_queue
+      @database.next_scan_in_batch_queue
     end
 
     def next_scan_in_queue
