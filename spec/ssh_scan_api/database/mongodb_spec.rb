@@ -35,6 +35,22 @@ describe SSHScan::DB::MongoDb do
     expect(doc["worker_id"]).to eql(nil)
   end
 
+  it "should #batch_queue_scan in the collection" do
+    uuid = SecureRandom.uuid
+    socket = {"target" => "127.0.0.1", "port" => 1337}
+
+    @mongodb.batch_queue_scan(uuid, socket)
+
+    # Emulate the retrieval process
+    doc = @mongodb.collection.find(:uuid => uuid).first
+
+    expect(doc["_id"]).to be_kind_of(::BSON::ObjectId)
+    expect(doc["uuid"]).to eql(uuid)
+    expect(doc["status"]).to eql("BATCH_QUEUED")
+    expect(doc["scan"]).to eql(nil)
+    expect(doc["worker_id"]).to eql(nil)
+  end
+
   it "should #run_scan in the collection" do
     uuid = SecureRandom.uuid
     socket = {"target" => "127.0.0.1", "port" => 1337}
