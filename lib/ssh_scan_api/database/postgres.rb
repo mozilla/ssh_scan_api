@@ -3,8 +3,6 @@ require 'pg'
 module SSHScan
   module DB
     class Postgres
-      attr_reader :collection
-
       def initialize(client)
         @client = client
       end
