@@ -1,4 +1,5 @@
 require 'ssh_scan_api/database/mongo'
+require 'ssh_scan_api/database/postgres'
 
 module SSHScan
   class Database

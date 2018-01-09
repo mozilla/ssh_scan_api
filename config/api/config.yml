@@ -34,12 +34,11 @@ authentication: false
 #     token       : INSERT_WORKER1_TOKEN
 
 # Define database configuration
-# MongoDB Example
 database:
- type: mongodb
+ type: postgres
  name: ssh_scan
  server: 127.0.0.1
- port: 27017
+ port: 5432
 
 # Define targets that we feel are invalid targets for scanning (customize however you like, these are our defaults)
 invalid_target_regexes:
