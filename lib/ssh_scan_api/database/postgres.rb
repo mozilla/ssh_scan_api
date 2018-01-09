@@ -7,7 +7,7 @@ module SSHScan
         @client = client
       end
 
-      # Helps us create a SSHScan::DB::MongoDB object with a hash
+      # Helps us create a SSHScan::DB::Postgres object with a hash
       def self.from_hash(opts)
         name = opts["name"]
         server = ENV['sshscan.database.host'] || opts["server"]
