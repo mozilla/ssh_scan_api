@@ -6,100 +6,71 @@ require 'json'
 require 'securerandom'
 require 'tempfile'
 
+# Expecatations
+#
+# There are some assumptions about the postgres setup on the local machine for these to run
+#
+# 1.) There is an sshobs user, that doesn't require authentication to run
+# 2.) There is a database called 'ssh_observatory' with a tables called 'scans'
+# 3.) These unit-tests will create/destroy the contents of the scans table
+
 describe SSHScan::DB::Postgres do
   before :each do
     opts = {
-      "server" => "127.0.0.1",
-      "port" => 5433      
+      :username => "sshobs",
+      #:password = "auserpassword",
+      :database => "ssh_observatory"
     }
+
     @postgres = SSHScan::DB::Postgres.from_hash(opts)
+
+    # Remove all records from the table for each test, to make sure we're starting clean
+    @postgres.exec("DELETE FROM scans")
   end
 
-  it "should create/delete databases when we ask" do
-    # Generate a random string for the database name
-    database_name = "test_database"
+  it "should queue a scan in the scans table" do
+    target = "sshscan.rubidus.com"
+    port = 22
+    status = "QUEUED"
 
-    # Create the ssh_scan database from scratch
-    @postgres.create(database_name)
+    # Verify we start with nothing in the table
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(0)
 
-    # Verify that we actually created the database
-    expect(@postgres.exists?(database_name)).to be true
+    @postgres.queue_scan(target, port)
 
-    # Clean up after ourselves, by deleting the database
-    @postgres.delete(database_name)
-    expect(@postgres.exists?(database_name)).to be false
+    # Verify we actually got something into the queue
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(1)
+
+    # Verify that that something is what we expect it to be
+    serial, target, port, state = @postgres.exec("SELECT * FROM scans").values.first
+    
+    expect(serial.to_i).to be_kind_of(Integer)
+    expect(target).to eql(target)
+    expect(port).to eql(port)
+    expect(status).to eql(status)
   end
 
-  it "should run SQL files from disk" do
-    database_name = "test_database2"
+  it "should batch queue a scan in the scans table" do
+    target = "sshscan.rubidus.com"
+    port = 22
+    status = "BATCH_QUEUED"
 
-    # Verify an initial state of no database matching this name
-    expect(@postgres.exists?(database_name)).to be false
+    # Verify we start with nothing in the table
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(0)
 
-    file = Tempfile.new('foo')
-    file.write("CREATE DATABASE #{database_name};")
-    file.close
+    @postgres.batch_queue_scan(target, port)
 
-    @postgres.exec_file(file.path)
-    expect(@postgres.exists?(database_name)).to be true
+    # Verify we actually got something into the queue
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(1)
 
-    # Clean up after ourselves, by deleting the database
-    @postgres.delete(database_name)
-    expect(@postgres.exists?(database_name)).to be false
+    # Verify that that something is what we expect it to be
+    serial, target, port, state = @postgres.exec("SELECT * FROM scans").values.first
+    
+    expect(serial.to_i).to be_kind_of(Integer)
+    expect(target).to eql(target)
+    expect(port).to eql(port)
+    expect(status).to eql(status)
   end
-
-  it "should initialize the schema" do
-    database_name = "test_database3"
-    @postgres.delete(database_name)
-
-    # Verify an initial state of no database matching this name
-    expect(@postgres.exists?(database_name)).to be false
-
-    # Create the database and verify it's existence
-    @postgres.create(database_name)
-    expect(@postgres.exists?(database_name)).to be true
-
-    # Load the project schema
-    @postgres.initalize
-    @postgres.table_exists?(database_name, "scans"). #TODO fix this, make it work
-
-    # Clean up after ourselves, by deleting the database
-    @postgres.delete(database_name)
-    expect(@postgres.exists?(database_name)).to be false
-  end
-
-
-  # it "should #queue_scan in the collection" do
-  #   uuid = SecureRandom.uuid
-  #   socket = {"target" => "127.0.0.1", "port" => 1337}
-
-  #   @mongodb.queue_scan(uuid, socket)
-
-  #   # Emulate the retrieval process
-  #   doc = @mongodb.collection.find(:uuid => uuid).first
-
-  #   expect(doc["_id"]).to be_kind_of(::BSON::ObjectId)
-  #   expect(doc["uuid"]).to eql(uuid)
-  #   expect(doc["status"]).to eql("QUEUED")
-  #   expect(doc["scan"]).to eql(nil)
-  #   expect(doc["worker_id"]).to eql(nil)
-  # end
-
-  # it "should #batch_queue_scan in the collection" do
-  #   uuid = SecureRandom.uuid
-  #   socket = {"target" => "127.0.0.1", "port" => 1337}
-
-  #   @mongodb.batch_queue_scan(uuid, socket)
-
-  #   # Emulate the retrieval process
-  #   doc = @mongodb.collection.find(:uuid => uuid).first
-
-  #   expect(doc["_id"]).to be_kind_of(::BSON::ObjectId)
-  #   expect(doc["uuid"]).to eql(uuid)
-  #   expect(doc["status"]).to eql("BATCH_QUEUED")
-  #   expect(doc["scan"]).to eql(nil)
-  #   expect(doc["worker_id"]).to eql(nil)
-  # end
 
   # it "should #run_scan in the collection" do
   #   uuid = SecureRandom.uuid

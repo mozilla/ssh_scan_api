@@ -9,66 +9,28 @@ module SSHScan
 
       # Helps us create a SSHScan::DB::Postgres object with a hash
       def self.from_hash(opts)
-        name = opts["name"]
+        database = opts["name"] || "ssh_observatory"
         server = ENV['sshscan.database.host'] || opts["server"]
         port = opts["port"]
-        client = PG.connect( host: server, port: port )
+        username = opts["username"]
+        password = opts["password"]
+
+        client = PG.connect( host: server, port: port, user: username, password: password, dbname: database )
         return SSHScan::DB::Postgres.new(client)
       end
 
-      # Creates a database
-      def create(name="ssh_scan")
-        @client.exec("CREATE DATABASE #{name}")
+      def exec(sql)
+        @client.exec(sql)
       end
 
-      # Deletes a database
-      def delete(name="ssh_scan")
-        @client.exec("DROP DATABASE #{name}")
+      def queue_scan(target, port)
+        @client.prepare("queue_scan", "insert into scans (target,port,state) values ($1, $2, $3)")
+        @client.exec_prepared("queue_scan", [target, port, "QUEUED"])
       end
 
-      def exec_file(path)
-        if File.exist?(path)
-          @client.exec(File.read(path))
-        else
-          raise "The SQL file #{path} does not exist"
-        end
-      end
-
-      # Checks to see if a database exists
-      def exists?(name="ssh_scan")
-        if @client.exec("SELECT datname FROM pg_database WHERE datname='#{name}'").values.size == 1
-          return true
-        else
-          return false
-        end
-      end
-
-      def initalize
-        self.exec_file(File.join(File.dirname(__FILE__), 'postgres/schema.sql'))
-      end
-
-      def queue_scan(uuid, socket)
-        # @collection.insert_one(
-        #   "uuid" => uuid,
-        #   "target" => socket["target"],
-        #   "port" => socket["port"].to_i,
-        #   "status" => "QUEUED",
-        #   "scan" => nil,
-        #   "queue_time" => Time.now,
-        #   "worker_id" => nil,
-        # )
-      end
-
-      def batch_queue_scan(uuid, socket)
-        # @collection.insert_one(
-        #   "uuid" => uuid,
-        #   "target" => socket["target"],
-        #   "port" => socket["port"].to_i,
-        #   "status" => "BATCH_QUEUED",
-        #   "scan" => nil,
-        #   "queue_time" => Time.now,
-        #   "worker_id" => nil,
-        # )
+      def batch_queue_scan(target, port)
+        @client.prepare("batch_queue_scan", "insert into scans (target,port,state) values ($1, $2, $3)")
+        @client.exec_prepared("batch_queue_scan", [target, port, "BATCH_QUEUED"])
       end
 
       def run_count
