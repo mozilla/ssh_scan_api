@@ -30,6 +30,7 @@ module SSHScan
         @client.prepare("run_scan", "update scans SET state = 'RUNNING' where uuid = $1")
         @client.prepare("complete_scan", "update scans SET (state,worker_id,scan) = ('COMPLETED',$1,$2) where uuid = $3")
         @client.prepare("error_scan", "update scans SET (state,worker_id,scan) = ('ERRORED',$1,$2) where uuid = $3")
+        @client.prepare("find_scans", "select uuid from scans where target = $1 and port = $2")
       end
 
       def queue_scan(target, port, uuid)
@@ -107,29 +108,35 @@ module SSHScan
       end
 
       def auth_method_report
-        # auth_methods = [
-        #   "publickey",
-        #   "password"
-        # ]
+        auth_methods = [
+          "publickey",
+          "password"
+        ]
 
-        # histogram = {}
+        histogram = {}
 
-        # auth_methods.each do |auth_method|
-        #   histogram[auth_method] = @collection.count("scan.auth_methods": auth_method)
-        # end
+        auth_methods.each do |auth_method|
+         results = @client.exec("SELECT COUNT(*) from scans where scan->'auth_methods' @> '\"#{auth_method}\"'")
+         histogram[auth_method ] = results.first.first[1].to_i
+        end
 
-        # return histogram
+        return histogram
       end
 
       def grade_report
-        # grades = ["A", "B", "C", "D", "F"]
-        # histogram = {}
+        grades = ["A", "B", "C", "D", "F"]
+        histogram = {}
 
-        # grades.each do |grade|
-        #   histogram[grade] = @collection.count("scan.compliance.grade": grade)
-        # end
-        
-        # return histogram
+        # Initilize as zero
+        grades.each do |grade|
+          histogram[grade] = 0
+        end
+
+        @client.exec("SELECT scan->'compliance'->>'grade' from scans").values.flatten.each do |grade|
+          histogram[grade] += 1
+        end
+
+        return histogram
       end
 
       def next_scan_in_batch_queue
@@ -145,7 +152,7 @@ module SSHScan
       end
 
       def find_recent_scans(ip, port, seconds_old)
-        # results = []
+        # uuids = []
 
         # # TODO: make this part of the query so it doesn't turn into a perf issue
         # @collection.find("target" => ip, "port" => port).each do |result|
@@ -157,8 +164,8 @@ module SSHScan
         # return results
       end
 
-      def find_scans(ip, port)
-        # @collection.find("target" => ip, "port" => port)
+      def find_scans(target, port)
+        @client.exec_prepared("find_scans", [target, port]).values.flatten
       end
     end
   end

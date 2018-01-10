@@ -6,7 +6,7 @@ require 'json'
 require 'securerandom'
 require 'tempfile'
 
-# Expecatations
+# Expectations
 #
 # There are some assumptions about the postgres setup on the local machine for these to run
 #
@@ -223,63 +223,69 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.error_count).to eql(1)
   end
 
-  # it "should give me the grade distributions we have" do
-  #   results = []
+  it "should give me the grade distributions we have" do
+    results = []
 
-  #   1.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "A"}}}
-  #   2.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "B"}}}
-  #   3.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "C"}}}
-  #   4.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "D"}}}
-  #   5.times {results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "compliance" => {"grade" => "F"}}}
+    1.times {results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"compliance":{"grade":"A"}}'}
+    2.times {results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"compliance":{"grade":"B"}}'}
+    3.times {results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"compliance":{"grade":"C"}}'}
+    4.times {results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"compliance":{"grade":"D"}}'}
+    5.times {results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"compliance":{"grade":"F"}}'}
 
-  #   socket = {"target" => "127.0.0.1", "port" => 1337}
+    target = "127.0.0.1"
+    port = 1337
 
-  #   results.each do |result|
-  #     uuid = SecureRandom.uuid
-  #     worker_id = SecureRandom.uuid
-  #     @mongodb.queue_scan(uuid, socket)
-  #     @mongodb.run_scan(uuid)
-  #     @mongodb.complete_scan(uuid, worker_id, result)
-  #   end
+    results.each do |result|
+      uuid = SecureRandom.uuid
+      worker_id = SecureRandom.uuid
+      @postgres.queue_scan(target, port, uuid)
+      @postgres.run_scan(uuid)
+      @postgres.complete_scan(uuid, worker_id, result)
+    end
 
-  #   expect(@mongodb.grade_report).to be_kind_of(Hash)
-  #   expect(@mongodb.grade_report).to eql({"A"=>1, "B"=>2, "C"=>3, "D"=>4, "F"=>5})
-  # end
+    expect(@postgres.grade_report).to be_kind_of(Hash)
+    expect(@postgres.grade_report).to eql({"A"=>1, "B"=>2, "C"=>3, "D"=>4, "F"=>5})
+  end
 
-  # it "should give me the auth method distributions we have" do
-  #   results = []
+  it "should give me the auth method distributions we have" do
+    results = []
 
-  #   results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["publickey"]}
-  #   results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["password"]}
-  #   results << {"ssh_scan_version" => "0.0.21", "ip" => "127.0.0.1", "auth_methods" => ["publickey", "password"]}
+    results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["publickey"]}'
+    results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["password"]}'
+    results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["publickey", "password"]}'
 
-  #   socket = {"target" => "127.0.0.1", "port" => 1337}
+    target = "127.0.0.1"
+    port = 1337
 
-  #   results.each do |result|
-  #     uuid = SecureRandom.uuid
-  #     worker_id = SecureRandom.uuid
-  #     @mongodb.queue_scan(uuid, socket)
-  #     @mongodb.run_scan(uuid)
-  #     @mongodb.complete_scan(uuid, worker_id, result)
-  #   end
+    results.each do |result|
+      uuid = SecureRandom.uuid
+      worker_id = SecureRandom.uuid
+      @postgres.queue_scan(target, port, uuid)
+      @postgres.run_scan(uuid)
+      @postgres.complete_scan(uuid, worker_id, result)
+    end
 
-  #   expect(@mongodb.auth_method_report).to be_kind_of(Hash)
-  #   expect(@mongodb.auth_method_report).to eql({"publickey"=>2, "password"=>2})
-  # end
+    expect(@postgres.auth_method_report).to be_kind_of(Hash)
+    expect(@postgres.auth_method_report).to eql({"publickey"=>2, "password"=>2})
+  end
 
 
-  # it "should be able to find all the scans via #find_scans" do
-  #   uuid1 = SecureRandom.uuid
-  #   uuid2 = SecureRandom.uuid
+  it "should be able to find all the scans via #find_scans" do
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
 
-  #   socket = {"target" => "127.0.0.1", "port" => 1337}
+    target = "127.0.0.1"
+    port = 1337
 
-  #   @mongodb.queue_scan(uuid1, socket)
-  #   @mongodb.queue_scan(uuid2, socket)
+    @postgres.queue_scan(target, port, uuid1)
+    @postgres.queue_scan(target, port, uuid2)
+    
+    scans = @postgres.find_scans(target, port)
 
-  #   docs = @mongodb.find_scans(socket["target"], socket["port"])
-  #   expect(docs.count).to eql(2)
-  # end
+    expect(scans.size).to eql(2)
+    expect(scans.include?(uuid1)).to be true
+    expect(scans.include?(uuid2)).to be true
+  end
 
 
   # it "should be able to find recent scan via #find_recent_scans" do
