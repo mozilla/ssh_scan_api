@@ -5,6 +5,7 @@ module SSHScan
     class Postgres
       def initialize(client)
         @client = client
+        initialize_prepared_statements
       end
 
       # Helps us create a SSHScan::DB::Postgres object with a hash
@@ -23,38 +24,56 @@ module SSHScan
         @client.exec(sql)
       end
 
-      def queue_scan(target, port)
-        @client.prepare("queue_scan", "insert into scans (target,port,state) values ($1, $2, $3)")
-        @client.exec_prepared("queue_scan", [target, port, "QUEUED"])
+      def initialize_prepared_statements
+        @client.prepare("queue_scan", "insert into scans (target,port,state,uuid) values ($1, $2, $3, $4)")
+        @client.prepare("batch_queue_scan", "insert into scans (target,port,state,uuid) values ($1, $2, $3, $4)")
+        @client.prepare("run_scan", "update scans SET state = 'RUNNING' where uuid = $1")
+        @client.prepare("complete_scan", "update scans SET (state,worker_id,scan) = ('COMPLETED',$1,$2) where uuid = $3")
+        @client.prepare("error_scan", "update scans SET (state,worker_id,scan) = ('ERRORED',$1,$2) where uuid = $3")
       end
 
-      def batch_queue_scan(target, port)
-        @client.prepare("batch_queue_scan", "insert into scans (target,port,state) values ($1, $2, $3)")
-        @client.exec_prepared("batch_queue_scan", [target, port, "BATCH_QUEUED"])
+      def queue_scan(target, port, uuid)
+        @client.exec_prepared("queue_scan", [target, port, "QUEUED", uuid])
+      end
+
+      def batch_queue_scan(target, port, uuid)
+        @client.exec_prepared("batch_queue_scan", [target, port, "BATCH_QUEUED", uuid])
       end
 
       def run_count
-        # @collection.count(status: 'RUNNING')
+        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'RUNNING'").values
+        return 0 if results.empty?
+        return results.first.first.to_i
       end
 
       def queue_count
-        # @collection.count(status: 'QUEUED')
+        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'QUEUED'").values
+        return 0 if results.empty?
+        return results.first.first.to_i
       end
 
       def batch_queue_count
-        # @collection.count(status: 'BATCH_QUEUED')
+        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'BATCH_QUEUED'").values
+        return 0 if results.empty?
+        return results.first.first.to_i
       end
 
       def error_count
-        # @collection.count(status: 'ERRORED')
+        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'ERRORED'").values
+        return 0 if results.empty?
+        return results.first.first.to_i
       end
 
       def complete_count
-        # @collection.count(status: 'COMPLETED')
+        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'COMPLETE'").values
+        return 0 if results.empty?
+        return results.first.first.to_i
       end
 
       def total_count
-        # @collection.count
+        results = @client.exec("SELECT COUNT(*) FROM scans").values
+        return 0 if results.empty?
+        return results.first.first.to_i
       end
 
       # The age of the oldest record in QUEUED state, in seconds
@@ -72,33 +91,19 @@ module SSHScan
       end
 
       def run_scan(uuid)
-        # @collection.find(uuid: uuid).update_one(
-        #   '$set'=> { 'status' => 'RUNNING' }
-        # )
+        @client.exec_prepared("run_scan", [uuid])
       end
 
       def get_scan(uuid)
         # @collection.find(uuid: uuid).first
       end
 
-      def complete_scan(uuid, worker_id, result)
-        # @collection.find(uuid: uuid).update_one(
-        #   '$set'=> { 
-        #     'status' => 'COMPLETED',
-        #     'worker_id' => worker_id,
-        #     'scan' => result
-        #   }
-        # )
+      def complete_scan(uuid, worker_id, scan_result)
+        @client.exec_prepared("complete_scan", [worker_id, scan_result, uuid])
       end
 
-      def error_scan(uuid, worker_id, result)
-        # @collection.find(uuid: uuid).update_one(
-        #   '$set'=> { 
-        #     'status' => 'ERRORED',
-        #     'worker_id' => worker_id,
-        #     'scan' => result
-        #   }
-        # )
+      def error_scan(uuid, worker_id, scan_result)
+        @client.exec_prepared("error_scan", [worker_id, scan_result, uuid])
       end
 
       def auth_method_report
@@ -128,11 +133,15 @@ module SSHScan
       end
 
       def next_scan_in_batch_queue
-        # @collection.find(status: "BATCH_QUEUED").first
+        results = @client.exec("SELECT uuid FROM scans WHERE state = 'BATCH_QUEUED' LIMIT 1").values
+        return nil if results.empty?
+        return results.first.first
       end
 
       def next_scan_in_queue
-        # @collection.find(status: "QUEUED").first
+        results = @client.exec("SELECT uuid FROM scans WHERE state = 'QUEUED' LIMIT 1").values
+        return nil if results.empty?
+        return results.first.first
       end
 
       def find_recent_scans(ip, port, seconds_old)
