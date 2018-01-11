@@ -103,7 +103,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
         target = params["target"]
         port = params["port"] ? params["port"].to_i : 22
-        socket = {"target" => target, "port" => port}
 
         # Let's stop garbage targets in their tracks
         if settings.target_validator.invalid?(target)
@@ -117,8 +116,8 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           return {"error" => "invalid port"}.to_json 
         end
 
-        # Check DB to see if we have a recent scans (<= 5 min ago) for this target
-        results = settings.db.find_recent_scans(target, port, 300)
+        # Check DB to see if we have a recent scans (<= 1 min ago) for this target
+        results = settings.db.find_recent_scans(target, port)
 
         # If we have recent results, return that UUID, if not assign a new one
         if results.any?
@@ -127,9 +126,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           uuid = SecureRandom.uuid
 
           if batch == true
-            settings.db.batch_queue_scan(uuid, socket)
+            settings.db.batch_queue_scan(target, port, uuid)
           else
-            settings.db.queue_scan(uuid, socket)
+            settings.db.queue_scan(target, port, uuid)
           end
         end
 
