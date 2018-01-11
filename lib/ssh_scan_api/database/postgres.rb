@@ -1,4 +1,5 @@
 require 'pg'
+require 'time'
 
 module SSHScan
   module DB
@@ -79,16 +80,12 @@ module SSHScan
 
       # The age of the oldest record in QUEUED state, in seconds
       def queued_max_age
-        # max_age = 0
-        
-        # @collection.find(status: 'QUEUED').each do |item|
-        #   age = Time.now - item["queue_time"]
-        #   if age > max_age
-        #     max_age = age
-        #   end
-        # end
+        max_age = 0
+        times = @client.exec("select MIN(timestamp) from scans where state = 'QUEUED'").values.flatten
 
-        # return max_age
+        return max_age if times.first.nil?
+        max_age = Time.now - Time.parse(times.first)
+        return max_age
       end
 
       def run_scan(uuid)
@@ -151,17 +148,16 @@ module SSHScan
         return results.first.first
       end
 
-      def find_recent_scans(ip, port, seconds_old)
-        # uuids = []
+      def find_recent_scans(target, port, test = false)
 
-        # # TODO: make this part of the query so it doesn't turn into a perf issue
-        # @collection.find("target" => ip, "port" => port).each do |result|
-        #   if Time.now - result["_id"].generation_time < seconds_old
-        #     results << result
-        #   end
-        # end
-
-        # return results
+        # WORKAROUND: I had issues trying to type cast the interval properly with parameterized, so this is a safe workaround for the time being short of using unsafe SQL
+        if test
+          select_string = "select uuid from scans where target = $1 and port = $2 and timestamp > NOW() - INTERVAL '2 seconds'"
+          return @client.exec_params(select_string, [target,port]).values.flatten
+        else
+          select_string = "select uuid from scans where target = $1 and port = $2 and timestamp > NOW() - INTERVAL '60 seconds'"
+          return @client.exec_params(select_string, [target,port]).values.flatten
+        end
       end
 
       def find_scans(target, port)

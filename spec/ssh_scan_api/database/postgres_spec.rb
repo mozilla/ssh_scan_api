@@ -95,7 +95,7 @@ describe SSHScan::DB::Postgres do
     @postgres.run_scan(uuid)
 
     # Verify that that something is what we expect it to be
-    serial, target, port, state, uuid2 = @postgres.exec("SELECT * FROM scans").values.first
+    serial, timestamp, target, port, state, uuid2 = @postgres.exec("SELECT * FROM scans").values.first
     
     expect(serial.to_i).to be_kind_of(Integer)
     expect(target).to eql(target)
@@ -127,7 +127,7 @@ describe SSHScan::DB::Postgres do
     @postgres.run_scan(uuid)
 
     # Verify that that something is what we expect it to be
-    serial, target2, port2, state2, uuid2 = @postgres.exec("SELECT * FROM scans").values.first
+    serial, timestamp, target2, port2, state2, uuid2 = @postgres.exec("SELECT * FROM scans").values.first
     
     expect(serial.to_i).to be_kind_of(Integer)
     expect(target2).to eql(target)
@@ -139,7 +139,7 @@ describe SSHScan::DB::Postgres do
     @postgres.complete_scan(uuid, worker_id, scan_result)
 
     # Verify that that something is what we expect it to be
-    serial, target3, port3, state3, uuid3, worker_id3, scan_result3 = @postgres.exec("SELECT * FROM scans").values.first
+    serial, timestamp, target3, port3, state3, uuid3, worker_id3, scan_result3 = @postgres.exec("SELECT * FROM scans").values.first
     
     expect(serial.to_i).to be_kind_of(Integer)
     expect(target3).to eql(target)
@@ -287,50 +287,50 @@ describe SSHScan::DB::Postgres do
     expect(scans.include?(uuid2)).to be true
   end
 
+  it "should be able to find recent scan via #find_recent_scans" do
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
 
-  # it "should be able to find recent scan via #find_recent_scans" do
-  #   uuid1 = SecureRandom.uuid
-  #   uuid2 = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
 
-  #   socket = {"target" => "127.0.0.1", "port" => 1337}
+    @postgres.queue_scan(target, port, uuid1)
+    sleep 5
+    @postgres.queue_scan(target, port, uuid2)
 
-  #   @mongodb.queue_scan(uuid1, socket)
-  #   sleep 5
-  #   @mongodb.queue_scan(uuid2, socket)
+    scans = @postgres.find_recent_scans(target, port, true)
+    expect(scans.count).to eql(1)
 
-  #   docs = @mongodb.find_recent_scans(socket["target"], socket["port"], 2)
-  #   expect(docs.count).to eql(1)
+    expect(scans.first).to eql(uuid2)
+  end
 
-  #   doc = docs.first
-  #   expect(doc["uuid"]).to eql(uuid2)
-  # end
+  it "should be able to find the max queue age" do
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
 
-  # it "should be able to find the max queue age" do
-  #   uuid1 = SecureRandom.uuid
-  #   uuid2 = SecureRandom.uuid
+    target1 = "127.0.0.1"
+    target2 = "127.0.0.2"
+    port = 1337
 
-  #   socket1 = {"target" => "127.0.0.1", "port" => 1337}
-  #   socket2 = {"target" => "127.0.0.2", "port" => 1337}
+    @postgres.queue_scan(target1, port, uuid1)
+    sleep 5
+    @postgres.queue_scan(target2, port, uuid2)
 
-  #   @mongodb.queue_scan(uuid1, socket1)
-  #   sleep 5
-  #   @mongodb.queue_scan(uuid2, socket2)
+    age = @postgres.queued_max_age
 
-  #   age = @mongodb.queued_max_age
+    expect(age).to be > 5.0
+    expect(age).to be < 6.0
+  end
 
-  #   expect(age).to be > 5.0
-  #   expect(age).to be < 6.0
-  # end
+  it "should return zero when there are no queued scans" do
+    uuid = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
 
-  # it "should return zero when there are no queued scans" do
-  #   uuid1 = SecureRandom.uuid
-  #   socket1 = {"target" => "127.0.0.1", "port" => 1337}
+    @postgres.queue_scan(target, port, uuid)
+    @postgres.run_scan(uuid)
 
-  #   @mongodb.queue_scan(uuid1, socket1)
-  #   @mongodb.run_scan(uuid1)
-
-  #   age = @mongodb.queued_max_age
-  #   expect(age).to eql(0)
-  # end
-
+    age = @postgres.queued_max_age
+    expect(age).to eql(0)
+  end
 end
