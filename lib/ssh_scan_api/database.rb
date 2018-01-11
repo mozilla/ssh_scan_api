@@ -1,11 +1,10 @@
-require 'ssh_scan_api/database/mongo'
 require 'ssh_scan_api/database/postgres'
 
 module SSHScan
   class Database
     attr_reader :database
 
-    # @param [SSHScan::Database::MongoDb, SSHScan::Database::SQLite] database
+    # @param [SSHScan::Database::Postgres] database
     def initialize(database)
       @database = database
     end
@@ -14,15 +13,7 @@ module SSHScan
     # @return [SSHScan::Database]
     def self.from_hash(opts)
       database_options = opts["database"]
-
-      # Figure out what database object to load
-      case database_options["type"]
-      when "mongodb"
-        database = SSHScan::DB::MongoDb.from_hash(database_options)
-      else
-        raise "Database type of #{database_options[:type].class} not supported"
-      end
-
+      database = SSHScan::DB::Postgres.from_hash(database_options)
       SSHScan::Database.new(database)
     end
 
@@ -70,8 +61,8 @@ module SSHScan
       @database.grade_report
     end
 
-    def queue_scan(uuid, socket)
-      @database.queue_scan(uuid, socket)
+    def queue_scan(target, port, uuid)
+      @database.queue_scan(target, port, uuid)
     end
 
     def batch_queue_scan(uuid, socket)
@@ -94,8 +85,8 @@ module SSHScan
       @database.next_scan_in_queue
     end
 
-    def find_recent_scans(ip, port, seconds_old)
-      @database.find_recent_scans(ip, port, seconds_old)
+    def find_recent_scans(ip, port, test_flag = false)
+      @database.find_recent_scans(ip, port, test_flag)
     end
 
     def find_scans(ip, port)
