@@ -333,4 +333,29 @@ describe SSHScan::DB::Postgres do
     age = @postgres.queued_max_age
     expect(age).to eql(0)
   end
+
+  it "should return a completed scan when asked for by uuid" do
+    uuid = SecureRandom.uuid
+    worker_id = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
+    scan_result = '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["publickey"]}'
+
+    @postgres.queue_scan(target, port, uuid)
+    @postgres.run_scan(uuid)
+    @postgres.complete_scan(uuid, worker_id, scan_result)
+
+    scan_result_from_db = @postgres.get_scan(uuid)
+
+    expect(scan_result_from_db).to be_kind_of(::Hash)
+    expect(scan_result_from_db).to eql(JSON.parse(scan_result))
+  end
+
+  it "should return an error for a uuid that was never tasked" do
+    uuid = SecureRandom.uuid
+    scan_result_from_db = @postgres.get_scan(uuid)
+
+    expect(scan_result_from_db).to be_kind_of(::Hash)
+    expect(scan_result_from_db).to eql({'error' => 'no matching uuid in datastore'})
+  end
 end

@@ -32,6 +32,7 @@ module SSHScan
         @client.prepare("complete_scan", "update scans SET (state,worker_id,scan) = ('COMPLETED',$1,$2) where uuid = $3")
         @client.prepare("error_scan", "update scans SET (state,worker_id,scan) = ('ERRORED',$1,$2) where uuid = $3")
         @client.prepare("find_scans", "select uuid from scans where target = $1 and port = $2")
+        @client.prepare("get_scan", "select scan from scans where uuid = $1")
       end
 
       def queue_scan(target, port, uuid)
@@ -93,7 +94,14 @@ module SSHScan
       end
 
       def get_scan(uuid)
-        # @collection.find(uuid: uuid).first
+        @client.exec_prepared("get_scan", [uuid])
+        scan_result = @client.exec_prepared("get_scan", [uuid]).values.flatten.first
+
+        if scan_result.nil?
+          return {'error' => 'no matching uuid in datastore'}
+        else
+          return JSON.parse(@client.exec_prepared("get_scan", [uuid]).values.flatten.first)
+        end
       end
 
       def complete_scan(uuid, worker_id, scan_result)
