@@ -36,7 +36,7 @@ authentication: false
 # Define database configuration
 database:
  type: postgres
- name: ssh_scan
+ name: ssh_observatory
  server: 127.0.0.1
  port: 5432
 
