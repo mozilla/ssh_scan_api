@@ -214,6 +214,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       end
 
       get '/stats' do
+        require 'pry'
+        binding.pry
+
         {
           "SCAN_STATES" => {
             "QUEUED" => settings.db.queue_count,
@@ -261,7 +264,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :db, SSHScan::Database.from_hash(options)
         set :target_validator, SSHScan::TargetValidator.new(options["config_file"])
         set :results, {}
-        set :stats, SSHScan::Stats.new
         set :authentication, options["authentication"]
         set :authenticator, SSHScan::Authenticator.from_config_file(
           options["config_file"]

@@ -10,14 +10,15 @@ module SSHScan
       end
 
       # Helps us create a SSHScan::DB::Postgres object with a hash
-      def self.from_hash(opts)
-        database = opts["name"] || "ssh_observatory"
-        server = ENV['sshscan.database.host'] || opts["server"]
-        port = opts["port"]
-        username = opts["username"]
-        password = opts["password"]
+      def self.from_hash(opts) 
+        client_options = {}
+        client_options[:host] = ENV['sshscan.database.host'] || opts["server"]
+        client_options[:port] = opts[:port] = opts["port"] || 5432
+        client_options[:user] = opts["username"] if opts["username"]
+        client_options[:password] = opts["password"] if opts["password"]
+        client_options[:dbname] = opts["name"] || "ssh_observatory"
 
-        client = PG.connect( host: server, port: port, user: username, password: password, dbname: database )
+        client = PG.connect(client_options)
         return SSHScan::DB::Postgres.new(client)
       end
 

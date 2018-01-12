@@ -17,8 +17,8 @@ require 'tempfile'
 describe SSHScan::DB::Postgres do
   before :each do
     opts = {
-      :username => "sshobs",
-      :database => "ssh_observatory"
+      "username" => "sshobs",
+      "database" => "ssh_observatory"
     }
 
     @postgres = SSHScan::DB::Postgres.from_hash(opts)
