@@ -7,9 +7,7 @@ matrix:
     services:
       - postgres
     before_script:
-      - createdb ssh_observatory
-      - createuser sshobs --createdb --no-password
-      - psql ssh_observatory < database/schema.sql
+      - database/init-user-db-travis.sh
     after_success:
       - coveralls
   - rvm: 2.4.1
@@ -18,27 +16,21 @@ matrix:
     services:
       - postgres
     before_script:
-      - createdb ssh_observatory
-      - createuser sshobs --createdb --no-password
-      - psql ssh_observatory < database/schema.sql
+      - database/init-user-db-travis.sh
   - rvm: 2.3.4
     env:
       - LABEL=unit_tests
     services:
       - postgres
     before_script:
-      - createdb ssh_observatory
-      - createuser sshobs --createdb --no-password
-      - psql ssh_observatory < database/schema.sql
+      - database/init-user-db-travis.sh
   - rvm: 2.2.7
     env:
       - LABEL=unit_tests
     services:
       - postgres
     before_script:
-      - createdb ssh_observatory
-      - createuser sshobs --createdb --no-password
-      - psql ssh_observatory < database/schema.sql
+      - database/init-user-db-travis.sh
   - rvm: 2.4.1
     env:
       - LABEL=docker_build_tests
