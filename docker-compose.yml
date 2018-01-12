@@ -26,7 +26,7 @@ services:
     restart: always
     depends_on:
       - "database"
-    command: ["./docker/wait-for-it.sh", "database:5432", "--", "/app/bin/ssh_scan_api"]
+    command: ["/app/docker/wait-for-it.sh", "database:5432", "--", "/app/bin/ssh_scan_api"]
   worker:
     build:
       context: .
@@ -42,4 +42,4 @@ services:
     depends_on:
       - "api"
     restart: always
-    command: ["./docker/wait-for-it.sh", "api:8000", "--", "/app/bin/ssh_scan_worker"]
+    command: ["/app/docker/wait-for-it.sh", "api:8000", "--", "/app/bin/ssh_scan_worker"]
