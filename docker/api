@@ -3,4 +3,5 @@ MAINTAINER Jonathan Claudius
 COPY . /app
 RUN cd /app && \
     gem install bundler && \
-    bundle install
+    bundle install && \
+    chmod u+x ./docker/wait-for-it.sh
