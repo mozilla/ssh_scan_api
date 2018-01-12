@@ -7,6 +7,7 @@ matrix:
     services:
       - postgres
     before_script:
+      - chmod u+x scriptname database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
     after_success:
       - coveralls
@@ -16,6 +17,7 @@ matrix:
     services:
       - postgres
     before_script:
+      - chmod u+x scriptname database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
   - rvm: 2.3.4
     env:
@@ -23,6 +25,7 @@ matrix:
     services:
       - postgres
     before_script:
+      - chmod u+x scriptname database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
   - rvm: 2.2.7
     env:
@@ -30,6 +33,7 @@ matrix:
     services:
       - postgres
     before_script:
+      - chmod u+x scriptname database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
   - rvm: 2.4.1
     env:
