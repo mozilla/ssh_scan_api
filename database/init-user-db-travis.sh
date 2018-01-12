@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-createdb -O sshobs --no-password dbname
+createuser -O sshobs --no-password
 createdb ssh_observatory
 psql -U sshobs -d ssh_observatory < ./database/schema.sql
