@@ -378,8 +378,9 @@ describe SSHScan::DB::Postgres do
 
     scan_result_from_db = @postgres.get_scan(uuid)
 
-    expect(scan_result_from_db).to be_kind_of(::Hash)
-    expect(scan_result_from_db).to eql(JSON.parse(scan_result))
+    expect(scan_result_from_db).to be_kind_of(::String)
+    # We're doing this extra parsing because order is not preserved in postgres JSONB objects
+    expect(JSON.parse(scan_result_from_db)).to eql(JSON.parse(scan_result))
   end
 
   it "should return an error for a uuid that was never tasked" do
