@@ -6,9 +6,11 @@ services:
       dockerfile: ./docker/database
     environment:
       POSTGRES_USER: sshobs
-      PGDATA: /data/postgres
-    volumes:
-       - ./data/postgres:/data/postgres
+      # PGDATA: /data/postgres
+    # volumes:
+    #    - ./data/postgres:/data/postgres
+    ports:
+      - 5432:5432
     networks:
       - default
     restart: unless-stopped

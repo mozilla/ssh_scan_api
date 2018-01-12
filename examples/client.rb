@@ -17,7 +17,6 @@ loop do
   warn "[+] Checking for scan results"
   result_uri = api_server + ("/api/v1/scan/results?uuid=" + resp["uuid"])
   scan_status = Net::HTTP.get_response(result_uri)
-
   scan_results = JSON.parse(scan_status.body)
 
   if scan_results["ssh_scan_version"]

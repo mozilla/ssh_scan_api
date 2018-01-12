@@ -94,6 +94,36 @@ describe SSHScan::Database do
     @abstract_database.complete_scan(uuid, worker_id, result)
   end
 
+  it "should defer #get_work calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:get_work).with(uuid)
+    @abstract_database.get_work(uuid)
+  end
+
+  it "should defer #get_scan calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:get_scan).with(uuid)
+    @abstract_database.get_scan(uuid)
+  end
+
+  it "should defer #get_scan_state calls to the specific DB implementation" do
+    worker_id = SecureRandom.uuid
+    uuid = SecureRandom.uuid
+    result = {:ip => "127.0.0.1", :port => 1337, :foo => "bar", :biz => "baz"}
+    socket = {:target => "127.0.0.1", :port => 1337}
+
+    expect(@test_database).to receive(:get_scan_state).with(uuid)
+    @abstract_database.get_scan_state(uuid)
+  end
+
   it "should defer #error_scan calls to the specific DB implementation" do
     worker_id = SecureRandom.uuid
     uuid = SecureRandom.uuid

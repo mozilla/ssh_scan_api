@@ -40,9 +40,9 @@ module SSHScan
           response = retrieve_work
           
           if response["work"]
-            job = response["work"]
-            results = perform_work(job)
-            post_results(results, job)
+            work = response["work"]
+            results = perform_work(work)
+            post_results(results, work)
           elsif response["error"]
             @logger.info("Error: #{response["error"]}")
             sleep @poll_interval
@@ -91,14 +91,15 @@ work?worker_id=#{@worker_id}"
       JSON.parse(response.body)
     end
 
-    def perform_work(job)
-      @logger.info("Started job: #{job["uuid"]}")
+    def perform_work(work)
+      @logger.info("Started job: #{work["uuid"]}")
+      work["sockets"] = [work["target"] + ":" + work["port"].to_s]
       scan_engine = SSHScan::ScanEngine.new
-      job["fingerprint_database"] = File.join(File.dirname(__FILE__),"../../data/fingerprints.yml")
-      job["policy"] = File.join(File.dirname(__FILE__),"../../config/policies/mozilla_modern.yml")
-      job["timeout"] = 5
-      results = scan_engine.scan(job)
-      @logger.info("Completed job: #{job["uuid"]}")
+      work["fingerprint_database"] = File.join(File.dirname(__FILE__),"../../data/fingerprints.yml")
+      work["policy"] = File.join(File.dirname(__FILE__),"../../config/policies/mozilla_modern.yml")
+      work["timeout"] = 5
+      results = scan_engine.scan(work)
+      @logger.info("Completed job: #{work["uuid"]}")
       return results
     end
 

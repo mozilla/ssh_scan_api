@@ -34,6 +34,8 @@ module SSHScan
         @client.prepare("error_scan", "update scans SET (state,worker_id,scan) = ('ERRORED',$1,$2) where uuid = $3")
         @client.prepare("find_scans", "select uuid from scans where target = $1 and port = $2")
         @client.prepare("get_scan", "select scan from scans where uuid = $1")
+        @client.prepare("get_scan_state", "select state from scans where uuid = $1")
+        @client.prepare("get_work", "select target,port from scans where uuid = $1")
       end
 
       def queue_scan(target, port, uuid)
@@ -94,14 +96,17 @@ module SSHScan
         @client.exec_prepared("run_scan", [uuid])
       end
 
+      def get_scan_state(uuid)
+        @client.exec_prepared("get_scan_state", [uuid]).values.flatten.first
+      end
+
       def get_scan(uuid)
-        @client.exec_prepared("get_scan", [uuid])
-        scan_result = @client.exec_prepared("get_scan", [uuid]).values.flatten.first
+        scan_result = @client.exec_prepared("get_scan", [uuid]).values.flatten.first      
 
         if scan_result.nil?
-          return {'error' => 'no matching uuid in datastore'}
+          return {"error" => "no matching uuid in datastore"}
         else
-          return JSON.parse(@client.exec_prepared("get_scan", [uuid]).values.flatten.first)
+          return @client.exec_prepared("get_scan", [uuid]).values.flatten.first
         end
       end
 
@@ -167,6 +172,17 @@ module SSHScan
           select_string = "select uuid from scans where target = $1 and port = $2 and timestamp > NOW() - INTERVAL '60 seconds'"
           return @client.exec_params(select_string, [target,port]).values.flatten
         end
+      end
+
+      def get_work(uuid)
+        target, port = @client.exec_prepared("get_work", [uuid]).values.flatten
+        return {
+          "work" => {
+            "uuid" => uuid,
+            "target" => target,
+            "port" => port.to_i,
+          }
+        }
       end
 
       def find_scans(target, port)

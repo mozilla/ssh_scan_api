@@ -53,6 +53,10 @@ module SSHScan
       @database.get_scan(uuid)
     end
 
+    def get_scan_state(uuid)
+      @database.get_scan_state(uuid)
+    end
+
     def auth_method_report
       @database.auth_method_report
     end
@@ -83,6 +87,10 @@ module SSHScan
 
     def next_scan_in_queue
       @database.next_scan_in_queue
+    end
+
+    def get_work(uuid)
+      @database.get_work(uuid)
     end
 
     def find_recent_scans(ip, port, test_flag = false)

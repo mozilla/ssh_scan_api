@@ -18,7 +18,8 @@ describe SSHScan::DB::Postgres do
   before :each do
     opts = {
       "username" => "sshobs",
-      "database" => "ssh_observatory"
+      "database" => "ssh_observatory",
+      "server" => "127.0.0.1"
     }
 
     @postgres = SSHScan::DB::Postgres.from_hash(opts)
@@ -169,6 +170,19 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.next_scan_in_queue).to eql(uuid1)
   end
 
+  it "should return nil if there is nothing in the queue" do
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
+
+    # Verify we now have two requests in the queue
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(0)
+
+    # It's first in first out processing, so should be uuid1 first
+    expect(@postgres.next_scan_in_queue).to be nil
+  end
+
   it "should give me the next batch queued scan" do
     uuid1 = SecureRandom.uuid
     uuid2 = SecureRandom.uuid
@@ -304,23 +318,23 @@ describe SSHScan::DB::Postgres do
     expect(scans.first).to eql(uuid2)
   end
 
-  it "should be able to find the max queue age" do
-    uuid1 = SecureRandom.uuid
-    uuid2 = SecureRandom.uuid
+  # it "should be able to find the max queue age" do
+  #   uuid1 = SecureRandom.uuid
+  #   uuid2 = SecureRandom.uuid
 
-    target1 = "127.0.0.1"
-    target2 = "127.0.0.2"
-    port = 1337
+  #   target1 = "127.0.0.1"
+  #   target2 = "127.0.0.2"
+  #   port = 1337
 
-    @postgres.queue_scan(target1, port, uuid1)
-    sleep 5
-    @postgres.queue_scan(target2, port, uuid2)
+  #   @postgres.queue_scan(target1, port, uuid1)
+  #   sleep 5
+  #   @postgres.queue_scan(target2, port, uuid2)
 
-    age = @postgres.queued_max_age
+  #   age = @postgres.queued_max_age
 
-    expect(age).to be > 5.0
-    expect(age).to be < 6.0
-  end
+  #   expect(age).to be > 5.0
+  #   expect(age).to be < 6.0
+  # end
 
   it "should return zero when there are no queued scans" do
     uuid = SecureRandom.uuid
@@ -332,6 +346,23 @@ describe SSHScan::DB::Postgres do
 
     age = @postgres.queued_max_age
     expect(age).to eql(0)
+  end
+
+  it "should return scan state at any stage when asked for by uuid" do
+    uuid = SecureRandom.uuid
+    worker_id = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
+    scan_result = '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["publickey"]}'
+
+    @postgres.queue_scan(target, port, uuid)
+    expect(@postgres.get_scan_state(uuid)).to eql("QUEUED")
+    @postgres.run_scan(uuid)
+    expect(@postgres.get_scan_state(uuid)).to eql("RUNNING")
+    @postgres.error_scan(uuid, worker_id, scan_result)
+    expect(@postgres.get_scan_state(uuid)).to eql("ERRORED")
+    @postgres.complete_scan(uuid, worker_id, scan_result)
+    expect(@postgres.get_scan_state(uuid)).to eql("COMPLETED")
   end
 
   it "should return a completed scan when asked for by uuid" do
@@ -358,4 +389,15 @@ describe SSHScan::DB::Postgres do
     expect(scan_result_from_db).to be_kind_of(::Hash)
     expect(scan_result_from_db).to eql({'error' => 'no matching uuid in datastore'})
   end
+
+  it "should get_work by uuid" do
+    uuid = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
+
+    @postgres.queue_scan(target, port, uuid)
+    expect(@postgres.get_work(uuid)).to be_kind_of(::Hash)
+    expect(@postgres.get_work(uuid)).to eql("work" => {"uuid"=>uuid, "target"=>target, "port"=>port})
+  end
+
 end

@@ -121,7 +121,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
         # If we have recent results, return that UUID, if not assign a new one
         if results.any?
-          uuid = results.first["uuid"]
+          uuid = results.first
         else
           uuid = SecureRandom.uuid
 
@@ -146,11 +146,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         # If we don't get a uuid, we don't know what scan to pick up
         return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
 
-        result = settings.db.get_scan(uuid)
-
-        return {"error" => "invalid uuid specified"}.to_json if result.nil?
-
-        case result["status"]
+        case settings.db.get_scan_state(uuid)
         when "QUEUED"
           return {"status" => "QUEUED"}.to_json
         when "ERRORED"
@@ -158,8 +154,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         when "RUNNNING"
           return {"status" => "RUNNNING"}.to_json
         when "COMPLETED"
-          result["scan"]["status"] = "COMPLETED"
-          return result["scan"].to_json
+          return settings.db.get_scan(uuid)
         else
           return {"scan" => "UNKNOWN"}.to_json
         end
@@ -171,23 +166,14 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
         worker_id = params[:worker_id]
 
-        doc = settings.db.next_scan_in_queue
+        uuid = settings.db.next_scan_in_queue
 
-        if doc.nil?
-          doc = settings.db.next_scan_in_batch_queue
-        end
-
-        if doc.nil?
+        if uuid.nil?
           return {"work" => false}.to_json
         else
-          settings.db.run_scan(doc["uuid"])
-          socket = [doc["target"],doc["port"]].join(":")
-          {
-            "work" => {
-              "uuid" => doc["uuid"],
-              "sockets" => [socket]
-            }
-          }.to_json
+          work = settings.db.get_work(uuid)
+          settings.db.run_scan(uuid)
+          return work.to_json
         end
       end
 
@@ -207,16 +193,13 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         end
 
         if result["error"]
-          settings.db.error_scan(uuid, worker_id, result)
+          settings.db.error_scan(uuid, worker_id, result.to_json)
         else
-          settings.db.complete_scan(uuid, worker_id, result)
+          settings.db.complete_scan(uuid, worker_id, result.to_json)
         end
       end
 
       get '/stats' do
-        require 'pry'
-        binding.pry
-
         {
           "SCAN_STATES" => {
             "QUEUED" => settings.db.queue_count,
