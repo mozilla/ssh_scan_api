@@ -1,5 +1,9 @@
 version: '2'
 services:
+  base:
+    build:
+      context: .
+      dockerfile: ./docker/base
   database:
     build:
       context: .
@@ -25,6 +29,7 @@ services:
       - default
     restart: always
     depends_on:
+      - "base"
       - "database"
     command: ["/app/docker/wait-for-it.sh", "database:5432", "--", "/app/bin/ssh_scan_api"]
   worker:
@@ -40,6 +45,7 @@ services:
     networks:
       - default
     depends_on:
+      - "base"
       - "api"
     restart: always
     command: ["/app/docker/wait-for-it.sh", "api:8000", "--", "/app/bin/ssh_scan_worker"]

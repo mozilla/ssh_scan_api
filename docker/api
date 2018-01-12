@@ -1,7 +1,5 @@
-FROM ruby:latest
+FROM sshscanapi_base:latest
 MAINTAINER Jonathan Claudius
-COPY . /app
-RUN cd /app && \
-    gem install bundler && \
-    bundle install && \
-    chmod u+x ./docker/wait-for-it.sh
+COPY ./lib /app/lib
+COPY ./bin /app/bin
+COPY ./config/api/config.yml /app/config/api/config.yml
