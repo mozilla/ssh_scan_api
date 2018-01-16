@@ -2,6 +2,7 @@ require 'mongo'
 require 'pg'
 require 'json'
 
+#This script was created to help with our migration from a MongoDB datastore to a Postgres datastore
 
 # Get clients setup so we can talk to each database
 
