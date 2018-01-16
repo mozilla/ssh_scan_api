@@ -6,7 +6,7 @@ require 'json'
 
 # Get clients setup so we can talk to each database
 
-mongo_client = Mongo::Client.new(["127.0.0.1:27017"], :database => "ssh_scan")[:ssh_scan]
+mongo_client = Mongo::Client.new(["127.0.0.1:27018"], :database => "ssh_scan")[:ssh_scan]
 
 postgres_client_opts = {
   :host => "127.0.0.1",
@@ -24,11 +24,18 @@ postgres_client.prepare("insert_migrated_record", "insert into scans (timestamp,
 mongo_client.find({}).each do |doc|
   target = doc["target"]
   port = doc["port"].to_s
+
+  puts "Migrating " + target + ":" + port + "..."
+
   state = doc["status"]
   uuid = doc["uuid"]
   worker_id = doc["worker_id"]
-  scan_result = doc["scan"].to_json
+  scan_result = doc["scan"].to_json	
   timestamp = doc["_id"].generation_time
 
-  postgres_client.exec_prepared("insert_migrated_record", [timestamp, target, port, state, uuid, worker_id, scan_result])
+  begin
+    postgres_client.exec_prepared("insert_migrated_record", [timestamp, target, port, state, uuid, worker_id, scan_result])
+  rescue PG::UntranslatableCharacter
+    puts "Failed to migrate " + target + ":" + port + "..."
+  end
 end
