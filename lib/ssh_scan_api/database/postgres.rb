@@ -71,7 +71,7 @@ module SSHScan
       end
 
       def complete_count
-        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'COMPLETE'").values
+        results = @client.exec("SELECT COUNT(*) FROM scans WHERE state = 'COMPLETED'").values
         return 0 if results.empty?
         return results.first.first.to_i
       end
@@ -88,7 +88,11 @@ module SSHScan
         times = @client.exec("select MIN(timestamp) from scans where state = 'QUEUED'").values.flatten
 
         return max_age if times.first.nil?
-        max_age = Time.now - Time.parse(times.first)
+
+        # The reason we are adding UTC in both contexts is because we had to set an explicit UTC label 
+        # for Postgres and the source system we could end up in a situation where we're many hours off
+        # due to UTC and non-UTC expectations with postgres and the source server.
+        max_age = Time.now.utc - Time.parse(times.first + " UTC")
         return max_age
       end
 
@@ -138,14 +142,24 @@ module SSHScan
         grades = ["A", "B", "C", "D", "F"]
         histogram = {}
 
-        # Initilize as zero
         grades.each do |grade|
-          histogram[grade] = 0
+          sql_cmd = "select count(*) from scans where scan IS NOT NULL and " + 
+                    "state = 'COMPLETED' and " + 
+                    "scan->'compliance' IS NOT NULL and " + 
+                    "scan->'compliance'->'grade' IS NOT NULL and " + 
+                    "scan->'compliance'->'grade' @> '\"#{grade}\"'"
+          results = @client.exec(sql_cmd)
+          histogram[grade] = results.first.first[1].to_i
         end
 
-        @client.exec("SELECT scan->'compliance'->>'grade' from scans").values.flatten.each do |grade|
-          histogram[grade] += 1
-        end
+        # Initilize as zero
+        # grades.each do |grade|
+        #   histogram[grade] = 0
+        # end
+
+        # @client.exec("SELECT scan->'compliance'->>'grade' from scans").values.flatten.each do |grade|
+        #   histogram[grade] += 1
+        # end
 
         return histogram
       end

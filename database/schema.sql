@@ -1,3 +1,6 @@
+-- Set a default timezone to ensure proper time calculations
+SET TIME ZONE 'UTC';
+
 -- Define the scan table
 CREATE TABLE IF NOT EXISTS scans (
   id SERIAL PRIMARY KEY,

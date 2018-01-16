@@ -202,7 +202,7 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.next_scan_in_batch_queue).to eql(uuid1)
   end
 
-  it "should give me the queue/running/complete/error counts" do
+  it "should give me the queue/running/queue/running/complete/error count/error counts" do
     uuid1 = SecureRandom.uuid
     uuid2 = SecureRandom.uuid
     worker_id = SecureRandom.uuid
@@ -217,23 +217,24 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.queue_count).to eql(2)
     expect(@postgres.run_count).to eql(0)
     expect(@postgres.complete_count).to eql(0)
+    expect(@postgres.error_count).to eql(0)
 
     @postgres.run_scan(uuid1)
     expect(@postgres.queue_count).to eql(1)
     expect(@postgres.run_count).to eql(1)
     expect(@postgres.complete_count).to eql(0)
+    expect(@postgres.error_count).to eql(0)
 
     @postgres.complete_scan(uuid1, worker_id, scan_result)
     expect(@postgres.queue_count).to eql(1)
     expect(@postgres.run_count).to eql(0)
-    #TODO: work through a fix here
-    # expect(@postgres.complete_count).to eql(1)
+    expect(@postgres.complete_count).to eql(1)
+    expect(@postgres.error_count).to eql(0)
 
     @postgres.error_scan(uuid2, worker_id, scan_result)
     expect(@postgres.queue_count).to eql(0)
     expect(@postgres.run_count).to eql(0)
-    #TODO: work through a fix here
-    #expect(@postgres.complete_count).to eql(1)
+    expect(@postgres.complete_count).to eql(1)
     expect(@postgres.error_count).to eql(1)
   end
 
@@ -261,6 +262,25 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.grade_report).to eql({"A"=>1, "B"=>2, "C"=>3, "D"=>4, "F"=>5})
   end
 
+  it "should give me the grade distributions when there is a scan in the queue and a completed scan" do
+    result = '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"compliance":{"grade":"A"}}'
+
+    target = "127.0.0.1"
+    port = 1337
+
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
+    worker_id = SecureRandom.uuid
+
+    @postgres.queue_scan(target, port, uuid1)
+
+    @postgres.queue_scan(target, port, uuid2)
+    @postgres.complete_scan(uuid2, worker_id, result)
+
+    expect(@postgres.grade_report).to be_kind_of(Hash)
+    expect(@postgres.grade_report).to eql({"A"=>1, "B"=>0, "C"=>0, "D"=>0, "F"=>0})
+  end
+
   it "should give me the auth method distributions we have" do
     results = []
 
@@ -282,6 +302,29 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.auth_method_report).to be_kind_of(Hash)
     expect(@postgres.auth_method_report).to eql({"publickey"=>2, "password"=>2})
   end
+
+  it "should give me the auth method distributions we have, when we have incompleted" do
+    results = []
+
+    results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["publickey"]}'
+    results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["password"]}'
+    results << '{"ssh_scan_version":"0.0.21","ip":"127.0.0.1","port":22,"auth_methods":["publickey", "password"]}'
+
+    target = "127.0.0.1"
+    port = 1337
+
+    results.each do |result|
+      uuid = SecureRandom.uuid
+      worker_id = SecureRandom.uuid
+      @postgres.queue_scan(target, port, uuid)
+      @postgres.run_scan(uuid)
+      @postgres.complete_scan(uuid, worker_id, result)
+    end
+
+    expect(@postgres.auth_method_report).to be_kind_of(Hash)
+    expect(@postgres.auth_method_report).to eql({"publickey"=>2, "password"=>2})
+  end
+
 
 
   it "should be able to find all the scans via #find_scans" do
@@ -318,23 +361,18 @@ describe SSHScan::DB::Postgres do
     expect(scans.first).to eql(uuid2)
   end
 
-  # it "should be able to find the max queue age" do
-  #   uuid1 = SecureRandom.uuid
-  #   uuid2 = SecureRandom.uuid
+  it "should be able to find the max queue age" do
+    uuid1 = SecureRandom.uuid
+    target1 = "127.0.0.1"
+    port = 1337
 
-  #   target1 = "127.0.0.1"
-  #   target2 = "127.0.0.2"
-  #   port = 1337
+    @postgres.queue_scan(target1, port, uuid1)
+    sleep 5
+    age = @postgres.queued_max_age
 
-  #   @postgres.queue_scan(target1, port, uuid1)
-  #   sleep 5
-  #   @postgres.queue_scan(target2, port, uuid2)
-
-  #   age = @postgres.queued_max_age
-
-  #   expect(age).to be > 5.0
-  #   expect(age).to be < 6.0
-  # end
+    expect(age).to be > 5.0
+    expect(age).to be < 6.0
+  end
 
   it "should return zero when there are no queued scans" do
     uuid = SecureRandom.uuid
