@@ -28,10 +28,6 @@ mongo_client.find({}).each do |doc|
   uuid = doc["uuid"]
   worker_id = doc["worker_id"]
   scan_result = doc["scan"].to_json
-
-  require 'pry'
-  binding.pry
-
   timestamp = doc["_id"].generation_time
 
   postgres_client.exec_prepared("insert_migrated_record", [timestamp, target, port, state, uuid, worker_id, scan_result])
