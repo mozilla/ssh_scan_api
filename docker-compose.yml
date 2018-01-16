@@ -8,8 +8,9 @@ services:
     build:
       context: .
       dockerfile: ./docker/database
-    ports:
-      - 5432:5432
+    # Uncomment below if you would like direct access to the DB for debugging/troubleshooting, this is not enabled by default for safety reasons
+    # ports:
+    #   - 5432:5432
     networks:
       - default
     restart: unless-stopped
