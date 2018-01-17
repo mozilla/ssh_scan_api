@@ -14,7 +14,6 @@ module SSHScan
     if ENV['RACK_ENV'] == 'test'
       configure do
         set :authentication, false
-        config_file = File.join(Dir.pwd, "./config/api/config.yml")
         opts = {
           "database" => {
             "username" => "sshobs",
@@ -23,7 +22,6 @@ module SSHScan
             "port" => 5432
           }
         }
-
         set :db, SSHScan::Database.from_hash(opts)
         set :target_validator, SSHScan::TargetValidator.new()
         set :environment, :production
