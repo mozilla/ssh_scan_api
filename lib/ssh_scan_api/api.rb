@@ -15,8 +15,15 @@ module SSHScan
       configure do
         set :authentication, false
         config_file = File.join(Dir.pwd, "./config/api/config.yml")
-        opts = YAML.load_file(config_file)
-        opts["config_file"] = config_file
+        opts = {
+          "database" => {
+            "username" => "sshobs",
+            "name" => "ssh_observatory",
+            "server" => "127.0.0.1",
+            "port" => 5432
+          }
+        }
+
         set :db, SSHScan::Database.from_hash(opts)
         set :target_validator, SSHScan::TargetValidator.new()
         set :environment, :production
