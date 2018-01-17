@@ -6,13 +6,12 @@ require 'json'
 
 # Get clients setup so we can talk to each database
 
-mongo_client = Mongo::Client.new(["127.0.0.1:27018"], :database => "ssh_scan")[:ssh_scan]
+mongo_client = Mongo::Client.new(["127.0.0.1:27017"], :database => "ssh_scan")[:ssh_scan]
 
 postgres_client_opts = {
   :host => "127.0.0.1",
   :port => 5432,
   :user => "sshobs",
- #:password => "sshobspassword",
   :dbname => "ssh_observatory"
 }
 postgres_client = PG.connect(postgres_client_opts)
