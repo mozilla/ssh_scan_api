@@ -367,11 +367,10 @@ describe SSHScan::DB::Postgres do
     port = 1337
 
     @postgres.queue_scan(target1, port, uuid1)
-    sleep 5
     age = @postgres.queued_max_age
 
-    expect(age).to be > 5.0
-    expect(age).to be < 6.0
+    expect(age).to be >= 0
+    expect(age).to be < 1
   end
 
   it "should return zero when there are no queued scans" do
