@@ -152,15 +152,6 @@ module SSHScan
           histogram[grade] = results.first.first[1].to_i
         end
 
-        # Initilize as zero
-        # grades.each do |grade|
-        #   histogram[grade] = 0
-        # end
-
-        # @client.exec("SELECT scan->'compliance'->>'grade' from scans").values.flatten.each do |grade|
-        #   histogram[grade] += 1
-        # end
-
         return histogram
       end
 
