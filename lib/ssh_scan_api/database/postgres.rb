@@ -93,7 +93,7 @@ module SSHScan
         # for Postgres and the source system we could end up in a situation where we're many hours off
         # due to UTC and non-UTC expectations with postgres and the source server.
         max_age = Time.now.utc - Time.parse(times.first + " UTC")
-        return max_age
+        return max_age.to_i
       end
 
       def run_scan(uuid)
