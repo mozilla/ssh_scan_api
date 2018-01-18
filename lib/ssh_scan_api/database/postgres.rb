@@ -36,6 +36,9 @@ module SSHScan
         @client.prepare("get_scan", "select scan from scans where uuid = $1")
         @client.prepare("get_scan_state", "select state from scans where uuid = $1")
         @client.prepare("get_work", "select target,port from scans where uuid = $1")
+        @client.prepare("count_auth_method", "select count(*) from scans where scan->'auth_methods' @> '\"$1\"'")
+        @client.prepare("count_grade", "select count(*) from scans where scan IS NOT NULL and state = 'COMPLETED' and scan->'compliance' IS NOT NULL and scan->'compliance'->'grade' IS NOT NULL and scan->'compliance'->'grade' @> '\"$1\"'")
+
       end
 
       def queue_scan(target, port, uuid)
@@ -131,7 +134,7 @@ module SSHScan
         histogram = {}
 
         auth_methods.each do |auth_method|
-         results = @client.exec("SELECT COUNT(*) from scans where scan->'auth_methods' @> '\"#{auth_method}\"'")
+         results = @client.exec_prepared("count_auth_method", [auth_method])
          histogram[auth_method ] = results.first.first[1].to_i
         end
 
@@ -143,12 +146,7 @@ module SSHScan
         histogram = {}
 
         grades.each do |grade|
-          sql_cmd = "select count(*) from scans where scan IS NOT NULL and " + 
-                    "state = 'COMPLETED' and " + 
-                    "scan->'compliance' IS NOT NULL and " + 
-                    "scan->'compliance'->'grade' IS NOT NULL and " + 
-                    "scan->'compliance'->'grade' @> '\"#{grade}\"'"
-          results = @client.exec(sql_cmd)
+          results = @client.exec_prepared("count_grade", [grade])
           histogram[grade] = results.first.first[1].to_i
         end
 
