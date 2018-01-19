@@ -102,7 +102,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         authenticated? if settings.authentication == true
         
         batch = false
-        if params["batch"]
+        if params["batch"] == "true"
           batch = true
         end
 
