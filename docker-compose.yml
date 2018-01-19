@@ -20,6 +20,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/api
+    tty: true
+    stdin_open: true
     ports:
       - 8000:8000
     environment:
