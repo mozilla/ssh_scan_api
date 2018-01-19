@@ -69,8 +69,8 @@ module SSHScan
       @database.queue_scan(target, port, uuid)
     end
 
-    def batch_queue_scan(uuid, socket)
-      @database.batch_queue_scan(uuid, socket)
+    def batch_queue_scan(target, port, uuid)
+      @database.batch_queue_scan(target, port, uuid)
     end
 
     def complete_scan(uuid, worker_id, result)
