@@ -1,28 +1,44 @@
 language: ruby
+sudo: false
+dist: trusty
+addons:
+  postgresql: "9.6"
 matrix:
   include:
   - rvm: ruby-head
     env:
       - LABEL=unit_tests
     services:
-      - mongodb
+      - postgres
+    before_script:
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
     after_success:
       - coveralls
   - rvm: 2.4.1
     env:
       - LABEL=unit_tests
     services:
-      - mongodb
+      - postgres
+    before_script:
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
   - rvm: 2.3.4
     env:
       - LABEL=unit_tests
     services:
-      - mongodb
+      - postgres
+    before_script:
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
   - rvm: 2.2.7
     env:
       - LABEL=unit_tests
     services:
-      - mongodb
+      - postgres
+    before_script:
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
   - rvm: 2.4.1
     env:
       - LABEL=docker_build_tests

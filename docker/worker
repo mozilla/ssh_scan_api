@@ -1,6 +1,7 @@
-FROM ruby:latest
+FROM sshscanapi_base:latest
 MAINTAINER Jonathan Claudius
-COPY . /app
-RUN cd /app && \
-    gem install bundler && \
-    bundle install
+COPY ./lib /app/lib
+COPY ./bin /app/bin
+COPY ./data /app/data
+COPY ./config/policies/ /app/config/policies
+COPY ./config/worker/config.yml /app/config/worker/config.yml

@@ -36,10 +36,10 @@ describe SSHScan::Authenticator do
         {"username"=>"starlord", "token"=> valid_token},
       ],
       "database"=>{
-        "type"=>"mongodb",
-        "name"=>"ssh_scan",
+        "type"=>"postgres",
+        "name"=>"ssh_observatory",
         "server"=>"127.0.0.1",
-        "port"=>27017
+        "port"=>5432
       }
     } 
 

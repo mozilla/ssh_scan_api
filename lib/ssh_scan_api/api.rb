@@ -14,9 +14,14 @@ module SSHScan
     if ENV['RACK_ENV'] == 'test'
       configure do
         set :authentication, false
-        config_file = File.join(Dir.pwd, "./config/api/config.yml")
-        opts = YAML.load_file(config_file)
-        opts["config_file"] = config_file
+        opts = {
+          "database" => {
+            "username" => "sshobs",
+            "name" => "ssh_observatory",
+            "server" => "127.0.0.1",
+            "port" => 5432
+          }
+        }
         set :db, SSHScan::Database.from_hash(opts)
         set :target_validator, SSHScan::TargetValidator.new()
         set :environment, :production
@@ -103,7 +108,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
         target = params["target"]
         port = params["port"] ? params["port"].to_i : 22
-        socket = {"target" => target, "port" => port}
 
         # Let's stop garbage targets in their tracks
         if settings.target_validator.invalid?(target)
@@ -117,19 +121,19 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
           return {"error" => "invalid port"}.to_json 
         end
 
-        # Check DB to see if we have a recent scans (<= 5 min ago) for this target
-        results = settings.db.find_recent_scans(target, port, 300)
+        # Check DB to see if we have a recent scans (<= 1 min ago) for this target
+        results = settings.db.find_recent_scans(target, port)
 
         # If we have recent results, return that UUID, if not assign a new one
         if results.any?
-          uuid = results.first["uuid"]
+          uuid = results.first
         else
           uuid = SecureRandom.uuid
 
           if batch == true
-            settings.db.batch_queue_scan(uuid, socket)
+            settings.db.batch_queue_scan(target, port, uuid)
           else
-            settings.db.queue_scan(uuid, socket)
+            settings.db.queue_scan(target, port, uuid)
           end
         end
 
@@ -147,11 +151,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         # If we don't get a uuid, we don't know what scan to pick up
         return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
 
-        result = settings.db.get_scan(uuid)
-
-        return {"error" => "invalid uuid specified"}.to_json if result.nil?
-
-        case result["status"]
+        case settings.db.get_scan_state(uuid)
         when "QUEUED"
           return {"status" => "QUEUED"}.to_json
         when "ERRORED"
@@ -159,8 +159,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         when "RUNNNING"
           return {"status" => "RUNNNING"}.to_json
         when "COMPLETED"
-          result["scan"]["status"] = "COMPLETED"
-          return result["scan"].to_json
+          return settings.db.get_scan(uuid)
         else
           return {"scan" => "UNKNOWN"}.to_json
         end
@@ -172,23 +171,14 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
         worker_id = params[:worker_id]
 
-        doc = settings.db.next_scan_in_queue
+        uuid = settings.db.next_scan_in_queue
 
-        if doc.nil?
-          doc = settings.db.next_scan_in_batch_queue
-        end
-
-        if doc.nil?
+        if uuid.nil?
           return {"work" => false}.to_json
         else
-          settings.db.run_scan(doc["uuid"])
-          socket = [doc["target"],doc["port"]].join(":")
-          {
-            "work" => {
-              "uuid" => doc["uuid"],
-              "sockets" => [socket]
-            }
-          }.to_json
+          work = settings.db.get_work(uuid)
+          settings.db.run_scan(uuid)
+          return work.to_json
         end
       end
 
@@ -208,9 +198,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         end
 
         if result["error"]
-          settings.db.error_scan(uuid, worker_id, result)
+          settings.db.error_scan(uuid, worker_id, result.to_json)
         else
-          settings.db.complete_scan(uuid, worker_id, result)
+          settings.db.complete_scan(uuid, worker_id, result.to_json)
         end
       end
 
@@ -262,7 +252,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         set :db, SSHScan::Database.from_hash(options)
         set :target_validator, SSHScan::TargetValidator.new(options["config_file"])
         set :results, {}
-        set :stats, SSHScan::Stats.new
         set :authentication, options["authentication"]
         set :authenticator, SSHScan::Authenticator.from_config_file(
           options["config_file"]

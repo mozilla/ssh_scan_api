@@ -29,13 +29,13 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     }.to_json)
   end
 
-  # it "should be able to POST /scan correctly" do
-  #   bad_ip = "192.168.255.255"
-  #   port = 22
-  #   post "/api/v1/scan", {:target => bad_ip, :port => port}
-  #   expect(last_response.status).to eql(200)
-  #   expect(last_response["Content-Type"]).to eql("application/json")
-  # end
+  it "should be able to POST /scan correctly" do
+    bad_ip = "192.168.255.255"
+    port = 22
+    post "/api/v1/scan", {:target => bad_ip, :port => port}
+    expect(last_response.status).to eql(200)
+    expect(last_response["Content-Type"]).to eql("application/json")
+  end
 
   it "should be able to GET /scan/results correctly" do
     get "/api/v1/scan/results"
@@ -53,23 +53,54 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       :status => "OK",
       :message => "Keep sending requests. I am still alive."
     }.to_json)
+    expect(last_response["Content-Type"]).to eql("application/json") 
   end
 
   it "should generate a stats report" do
     get "/api/v1/stats"
     expect(last_response.status).to eql(200)
-    expect(last_response.body["SCAN_STATES"]).not_to be nil
-    expect(last_response.body["QUEUED_MAX_AGE"]).not_to be nil
-    expect(last_response.body["GRADE_REPORT"]).not_to be nil
-    expect(last_response.body["AUTH_METHOD_REPORT"]).not_to be nil
+
+    parsed_response = JSON.parse(last_response.body)
+
+    expect(parsed_response["SCAN_STATES"]).to be_kind_of(::Hash)
+    expect(parsed_response["SCAN_STATES"].keys).to eql(["QUEUED", "BATCH_QUEUED", "RUNNING", "ERRORED", "COMPLETED"])
+    parsed_response["SCAN_STATES"].values.each do |value|
+      expect(value).to be_kind_of(::Integer)
+    end
+    expect(parsed_response["QUEUED_MAX_AGE"]).to be_kind_of(::Integer)
+    expect(parsed_response["QUEUED_MAX_AGE"]).to be >= 0
+    expect(parsed_response["GRADE_REPORT"].keys).to eql(["A", "B", "C", "D", "F"])
+    parsed_response["GRADE_REPORT"].values.each do |value|
+      expect(value).to be_kind_of(::Integer)
+    end
+    expect(parsed_response["AUTH_METHOD_REPORT"].keys).to eql(["publickey", "password"])
+    parsed_response["AUTH_METHOD_REPORT"].values do |value|
+      expect(value).to be_kind_of(::Integer)
+    end
+    expect(last_response["Content-Type"]).to eql("application/json") 
   end
 
-  # it "should return string uuid" do
-  #   ip = "192.168.1.1"
-  #   port = 22
-  #   post "/api/v1/scan", {:target => ip, :port => port}
-  #   expect(last_response.status).to eql(200)
-  #   expect(last_response.body).to be_kind_of(::String)
-  #   expect(last_response["Content-Type"]).to eql("application/json") 
-  # end
+  it "should return an error for status check on non-existant uuid" do
+    uuid = SecureRandom.uuid
+    get "/api/v1/scan/results?uuid=uuid_string", {:uuid => uuid}
+
+    expect(last_response.status).to eql(200)
+    expect(last_response.body).to be_kind_of(::String)
+    expect(last_response.body).to eql(
+      {"scan": "UNKNOWN"}.to_json
+    )
+    expect(last_response["Content-Type"]).to eql("application/json") 
+  end
+
+  it "should return string uuid" do
+    ip = "127.0.0.1"
+    port = 22
+    post "/api/v1/scan", {:target => ip, :port => port}
+    expect(last_response.status).to eql(200)
+    expect(last_response.body).to be_kind_of(::String)
+    parsed_response = JSON.parse(last_response.body)
+    expect(parsed_response["uuid"]).to match(/^[\w]+{8}-[\w]+{4}-[\w]+{4}-[\w]+{4}-[\w]+{12}$/)
+    expect(last_response["Content-Type"]).to eql("application/json") 
+  end
+
 end

@@ -1,3 +1,5 @@
-docker-compose build && \
+docker-compose build --no-cache && \
 docker stop $(docker ps -a -q) && \
-docker-compose scale database=1 api=1 worker=1
+# For debug only...
+# docker-compose up
+docker-compose up -d --scale base=0 --scale database=1 --scale api=1 --scale worker=3 --no-recreate
