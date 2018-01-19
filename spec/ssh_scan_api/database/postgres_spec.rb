@@ -170,6 +170,20 @@ describe SSHScan::DB::Postgres do
     expect(@postgres.next_scan_in_queue).to eql(uuid1)
   end
 
+  it "should prioritize QUEUED scans over BATCH_QUEUED scans when called via next_scan_in_queue" do
+    uuid1 = SecureRandom.uuid
+    uuid2 = SecureRandom.uuid
+    target = "127.0.0.1"
+    port = 1337
+
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(0)
+    @postgres.batch_queue_scan(target, port, uuid1)
+    @postgres.queue_scan(target, port, uuid2)
+    expect(@postgres.exec("SELECT * FROM scans").values.size).to eql(2)
+    expect(@postgres.next_scan_in_queue).to eql(uuid2)
+  end
+
+
   it "should return nil if there is nothing in the queue" do
     uuid1 = SecureRandom.uuid
     uuid2 = SecureRandom.uuid
