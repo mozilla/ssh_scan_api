@@ -163,7 +163,13 @@ module SSHScan
 
       def next_scan_in_queue
         results = @client.exec("SELECT uuid FROM scans WHERE state = 'QUEUED' LIMIT 1").values
-        return nil if results.empty?
+
+        # Pick from the batch_queue if the regular queue is empty
+        if results.empty?
+          uuid = next_scan_in_batch_queue
+          return uuid
+        end
+
         return results.first.first
       end
 
