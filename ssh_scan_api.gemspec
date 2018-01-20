@@ -27,6 +27,9 @@ Gem::Specification.new do |s|
   s.homepage = 'http://rubygems.org/gems/ssh_scan_api'
 
   s.add_dependency('ssh_scan', '0.0.32')
+  
+  s.add_dependency('sinatra-activerecord')
+  s.add_dependency('sqlite3')
   s.add_dependency('pg')
   s.add_dependency('sinatra')
   s.add_dependency('sinatra-contrib')

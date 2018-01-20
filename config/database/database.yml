@@ -1,0 +1,25 @@
+development:
+ adapter: postgresql
+ encoding: unicode
+ database: ssh_observatory
+ host: localhost
+ username: sshobs
+ port: 5432
+
+test:
+ adapter: postgresql
+ encoding: unicode
+ database: ssh_observatory
+ pool: 5
+ host: localhost
+ username: sshobs
+ port: 5432
+
+production:
+ adapter: postgresql
+ encoding: unicode
+ database: ssh_observatory
+ pool: 5
+ host: sshobservatory_database.mozilla.org
+ username: sshobs
+ port: 5432
