@@ -6,7 +6,6 @@ module SSHScan
     class Postgres
       def initialize(client)
         @client = client
-        initialize_prepared_statements
       end
 
       # Helps us create a SSHScan::DB::Postgres object with a hash
@@ -26,24 +25,12 @@ module SSHScan
         @client.exec(sql)
       end
 
-      def initialize_prepared_statements
-        @client.prepare("queue_scan", "insert into scans (target,port,state,uuid) values ($1, $2, $3, $4)")
-        @client.prepare("batch_queue_scan", "insert into scans (target,port,state,uuid) values ($1, $2, $3, $4)")
-        @client.prepare("run_scan", "update scans SET state = 'RUNNING' where uuid = $1")
-        @client.prepare("complete_scan", "update scans SET (state,worker_id,scan) = ('COMPLETED',$1,$2) where uuid = $3")
-        @client.prepare("error_scan", "update scans SET (state,worker_id,scan) = ('ERRORED',$1,$2) where uuid = $3")
-        @client.prepare("find_scans", "select uuid from scans where target = $1 and port = $2")
-        @client.prepare("get_scan", "select scan from scans where uuid = $1")
-        @client.prepare("get_scan_state", "select state from scans where uuid = $1")
-        @client.prepare("get_work", "select target,port from scans where uuid = $1")
-      end
-
       def queue_scan(target, port, uuid)
-        @client.exec_prepared("queue_scan", [target, port, "QUEUED", uuid])
+        @client.exec_params("insert into scans (target,port,state,uuid) values ($1, $2, $3, $4)", [target, port, "QUEUED", uuid])
       end
 
       def batch_queue_scan(target, port, uuid)
-        @client.exec_prepared("batch_queue_scan", [target, port, "BATCH_QUEUED", uuid])
+        @client.exec_params("insert into scans (target,port,state,uuid) values ($1, $2, $3, $4)", [target, port, "BATCH_QUEUED", uuid])
       end
 
       def run_count
@@ -84,8 +71,8 @@ module SSHScan
 
       # The age of the oldest record in QUEUED state, in seconds
       def queued_max_age
-        max_age = 0
         times = @client.exec("select MIN(timestamp) from scans where state = 'QUEUED'").values.flatten
+        max_age = 0
 
         return max_age if times.first.nil?
 
@@ -97,29 +84,29 @@ module SSHScan
       end
 
       def run_scan(uuid)
-        @client.exec_prepared("run_scan", [uuid])
+        @client.exec_params("update scans SET state = 'RUNNING' where uuid = $1", [uuid])
       end
 
       def get_scan_state(uuid)
-        @client.exec_prepared("get_scan_state", [uuid]).values.flatten.first
+        @client.exec_params("select state from scans where uuid = $1", [uuid]).values.flatten.first
       end
 
       def get_scan(uuid)
-        scan_result = @client.exec_prepared("get_scan", [uuid]).values.flatten.first      
+        scan_result = @client.exec_params("select scan from scans where uuid = $1", [uuid]).values.flatten.first      
 
         if scan_result.nil?
           return {"error" => "no matching uuid in datastore"}
         else
-          return @client.exec_prepared("get_scan", [uuid]).values.flatten.first
+          return scan_result
         end
       end
 
       def complete_scan(uuid, worker_id, scan_result)
-        @client.exec_prepared("complete_scan", [worker_id, scan_result, uuid])
+        @client.exec_params("update scans SET (state,worker_id,scan) = ('COMPLETED',$1,$2) where uuid = $3", [worker_id, scan_result, uuid])
       end
 
       def error_scan(uuid, worker_id, scan_result)
-        @client.exec_prepared("error_scan", [worker_id, scan_result, uuid])
+        @client.exec_params("update scans SET (state,worker_id,scan) = ('ERRORED',$1,$2) where uuid = $3", [worker_id, scan_result, uuid])
       end
 
       def auth_method_report
@@ -131,8 +118,8 @@ module SSHScan
         histogram = {}
 
         auth_methods.each do |auth_method|
-         results = @client.exec("SELECT COUNT(*) from scans where scan->'auth_methods' @> '\"#{auth_method}\"'")
-         histogram[auth_method ] = results.first.first[1].to_i
+          results = @client.exec("SELECT COUNT(*) from scans where scan->'auth_methods' @> '\"#{auth_method}\"'")
+          histogram[auth_method ] = results.first.first[1].to_i
         end
 
         return histogram
@@ -174,9 +161,8 @@ module SSHScan
       end
 
       def find_recent_scans(target, port, test = false)
-
         # WORKAROUND: I had issues trying to type cast the interval properly with parameterized, so this is a safe workaround for the time being short of using unsafe SQL
-        if test
+        if test == true
           select_string = "select uuid from scans where target = $1 and port = $2 and timestamp > NOW() - INTERVAL '2 seconds'"
           return @client.exec_params(select_string, [target,port]).values.flatten
         else
@@ -186,7 +172,7 @@ module SSHScan
       end
 
       def get_work(uuid)
-        target, port = @client.exec_prepared("get_work", [uuid]).values.flatten
+        target, port = @client.exec_params("select target,port from scans where uuid = $1", [uuid]).values.flatten
         return {
           "work" => {
             "uuid" => uuid,
@@ -197,7 +183,7 @@ module SSHScan
       end
 
       def find_scans(target, port)
-        @client.exec_prepared("find_scans", [target, port]).values.flatten
+        @client.exec_params("select uuid from scans where target = $1 and port = $2", [target, port]).values.flatten
       end
     end
   end
