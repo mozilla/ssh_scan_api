@@ -13,10 +13,12 @@
 ActiveRecord::Schema.define(version: 20180120054652) do
 
   create_table "scans", force: :cascade do |t|
-    t.string "uuid"
+    t.string "scan_id"
     t.string "target"
     t.integer "port"
     t.string "state"
+    t.string "worker_id"
+    t.string "scan"
   end
 
 end

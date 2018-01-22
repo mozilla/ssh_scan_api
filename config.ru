@@ -3,4 +3,4 @@ require 'bundler'
 Bundler.require
 
 require './app.rb'
-run App
+Rack::Handler.default.run(App, :Port => 8000, :Host => "127.0.0.1")

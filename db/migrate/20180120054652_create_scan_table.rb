@@ -6,6 +6,7 @@ class CreateScanTable < ActiveRecord::Migration[5.1]
       t.integer :port
       t.string :state
       t.string :worker_id
+      t.string :scan
     end
   end
 end
