@@ -70,20 +70,20 @@ describe SSHScan::Worker do
     expect(scan1_from_queue).to be_kind_of(SSHScan::Scan)
 
     @worker.do_work
-    completed_scan = SSHScan::Scan.find_by("scan_id": scan1.scan_id)
-    expect(completed_scan.state).to eql("COMPLETED")
-    expect(completed_scan.grade).to eql("A")
-    expect(completed_scan.worker_id).to match(/^[\w]+{8}-[\w]+{4}-[\w]+{4}-[\w]+{4}-[\w]+{12}$/)
-    expect(completed_scan.raw_scan).to be_kind_of(::String)
-    expect(JSON.parse(completed_scan.raw_scan)).to be_kind_of(::Hash)
+    completed_scan1 = SSHScan::Scan.find_by("scan_id": scan1.scan_id)
+    expect(completed_scan1.state).to eql("COMPLETED")
+    expect(completed_scan1.grade).to eql("A")
+    expect(completed_scan1.worker_id).to match(/^[\w]+{8}-[\w]+{4}-[\w]+{4}-[\w]+{4}-[\w]+{12}$/)
+    expect(completed_scan1.raw_scan).to be_kind_of(::String)
+    expect(JSON.parse(completed_scan1.raw_scan)).to be_kind_of(::Hash)
 
     @worker.do_work
-    completed_scan = SSHScan::Scan.find_by("scan_id": scan2.scan_id)
-    expect(completed_scan.state).to eql("COMPLETED")
-    expect(completed_scan.grade).to eql("A")
-    expect(completed_scan.worker_id).to match(/^[\w]+{8}-[\w]+{4}-[\w]+{4}-[\w]+{4}-[\w]+{12}$/)
-    expect(completed_scan.raw_scan).to be_kind_of(::String)
-    expect(JSON.parse(completed_scan.raw_scan)).to be_kind_of(::Hash)
+    completed_scan2 = SSHScan::Scan.find_by("scan_id": scan2.scan_id)
+    expect(completed_scan2.state).to eql("COMPLETED")
+    expect(completed_scan2.grade).to eql("A")
+    expect(completed_scan2.worker_id).to match(/^[\w]+{8}-[\w]+{4}-[\w]+{4}-[\w]+{4}-[\w]+{12}$/)
+    expect(completed_scan2.raw_scan).to be_kind_of(::String)
+    expect(JSON.parse(completed_scan2.raw_scan)).to be_kind_of(::Hash)
   end
 
 end
