@@ -109,40 +109,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       return {"uuid": scan.scan_id}.to_json
     end
 
-    # get '/work' do
-    #   worker_id = params[:worker_id]
-
-    #   scan = Scan.find_by("state": "QUEUED")
-
-    #   if scan.nil?
-    #     return {"work" => false}.to_json
-    #   else
-    #     scan.state = "RUNNING"
-    #     scan.save
-
-    #     return {
-    #       "work" => {
-    #         "uuid" => scan.scan_id,
-    #         "target" => scan.target,
-    #         "port" => scan.port 
-    #       }
-    #     }.to_json
-    #   end
-    # end
-
-    # post '/work/results/:worker_id/:uuid' do
-    #   worker_id = params['worker_id']
-    #   uuid = params['uuid']
-    #   result = JSON.parse(request.body.first).first
-
-    #   scan = Scan.find_by("scan_id": uuid)
-    #   scan.worker_id = worker_id
-    #   scan.state = "COMPLETED"
-    #   scan.grade = result["compliance"]["grade"] || nil
-    #   scan.raw_scan = result.to_json
-    #   scan.save
-    # end
-
     get '/scan/results' do
       uuid = params[:uuid]
 
@@ -197,14 +163,9 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       }.to_json
     end
 
-    get '/scans' do
-      @scans = Scan.all
-      @scans.to_json
-    end
-
-    # get '/scans/:scan_id/?' do
-    #   @scan = Scan.find_by(scan_id: params[:scan_id])
-    #   @scan.to_json
+    # get '/scans' do
+    #   @scans = Scan.all
+    #   @scans.to_json
     # end
 
     get '/__lbheartbeat__' do
