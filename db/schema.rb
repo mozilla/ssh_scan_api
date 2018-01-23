@@ -14,11 +14,13 @@ ActiveRecord::Schema.define(version: 20180120054652) do
 
   create_table "scans", force: :cascade do |t|
     t.string "scan_id"
+    t.datetime "creation_time"
     t.string "target"
     t.integer "port"
     t.string "state"
     t.string "worker_id"
-    t.string "scan"
+    t.string "grade"
+    t.string "raw_scan"
   end
 
 end

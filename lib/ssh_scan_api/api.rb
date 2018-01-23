@@ -1,270 +1,217 @@
-require 'sinatra/base'
+require 'sinatra'
+require 'sinatra/activerecord'
 require 'sinatra/namespace'
-require 'json'
-require 'haml'
-require 'secure_headers'
-require 'thin'
 require 'securerandom'
-require 'ssh_scan'
-require 'ssh_scan_api/database'
+require 'secure_headers'
+require 'ssh_scan_api/models/scan'
 require 'ssh_scan_api/target_validator'
+require 'ssh_scan_api/authenticator'
 
-module SSHScan
-  class API < Sinatra::Base
-    if ENV['RACK_ENV'] == 'test'
-      configure do
-        set :authentication, false
-        opts = {
-          "database" => {
-            "username" => "sshobs",
-            "name" => "ssh_observatory",
-            "server" => "127.0.0.1",
-            "port" => 5432
-          }
-        }
-        set :db, SSHScan::Database.from_hash(opts)
-        set :target_validator, SSHScan::TargetValidator.new()
-        set :environment, :production
-        set :allowed_ports, [22]
+enable :logging
+set :database, {adapter: "sqlite3", database: "foo.sqlite3"}
+set :server, 'thin'
+set :logger, Logger.new(STDOUT)
+set :target_validator, SSHScan::TargetValidator.new("./config/api/config.yml")
+set :authenticator, SSHScan::Authenticator.new("./config/api/config.yml")
+set :environment, :production
+set :allowed_ports, [22]
+set :protection, false
+
+class SSHScan::Api < Sinatra::Base
+  include SSHScan
+  register Sinatra::Namespace
+
+  before do
+    content_type :json
+  end
+
+  # Configure all the secure headers we want to use
+  use SecureHeaders::Middleware
+  SecureHeaders::Configuration.default do |config|
+    config.cookies = {
+      secure: true, # mark all cookies as "Secure"
+      httponly: true, # mark all cookies as "HttpOnly"
+    }
+    config.hsts = "max-age=31536000; includeSubdomains; preload"
+    config.x_frame_options = "DENY"
+    config.x_content_type_options = "nosniff"
+    config.x_xss_protection = "1; mode=block"
+    config.x_download_options = "noopen"
+    config.x_permitted_cross_domain_policies = "none"
+    config.referrer_policy = "no-referrer"
+    config.csp = {
+      default_src: ["'none'"],
+      script_src: ["'none'"],
+      frame_ancestors: ["'none'"],
+      upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
+    }
+  end
+
+  before do
+    headers "Access-Control-Allow-Methods" => "GET, POST"
+    headers "Access-Control-Allow-Origin" => "*"
+    headers "Access-Control-Max-Age" => "86400"
+    headers "Cache-control" => "no-store"
+    headers "Pragma" => "no-cache"
+    headers "Server" => "ssh_scan_api"
+  end
+
+  # Custom 404 handling
+  not_found do
+    content_type "text/plain"
+    "Invalid request, see API documentation here: \
+https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
+  end
+
+  get '/' do
+    content_type "text/plain"
+    "See API documentation here: \
+https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
+  end
+
+  get '/robots.txt' do
+    content_type "text/plain"
+    "User-agent: *\nDisallow: /\n"
+  end
+
+  get '/contribute.json' do
+    content_type :json
+    SSHScan::Constants::CONTRIBUTE_JSON.to_json
+  end
+
+  get '/__version__' do
+    {
+      :api_version => SSHScan::API_VERSION,
+    }.to_json
+  end
+
+  namespace "/api/v1" do
+
+    post '/scan' do
+      port = params["port"] || 22
+
+      # existing_scan = Scan.find_by("target": params["target"], "port": port)
+
+      # if existing_scan
+      #   return {"uuid": existing_scan.scan_id}.to_json
+      # end
+
+      scan = Scan.new do |s|
+        s.scan_id = SecureRandom.uuid
+        s.creation_time = Time.now
+        s.target = params["target"]
+        s.port = port
+        s.state = "QUEUED"
+        s.save
+      end
+
+      return {"uuid": scan.scan_id}.to_json
+    end
+
+    # get '/work' do
+    #   worker_id = params[:worker_id]
+
+    #   scan = Scan.find_by("state": "QUEUED")
+
+    #   if scan.nil?
+    #     return {"work" => false}.to_json
+    #   else
+    #     scan.state = "RUNNING"
+    #     scan.save
+
+    #     return {
+    #       "work" => {
+    #         "uuid" => scan.scan_id,
+    #         "target" => scan.target,
+    #         "port" => scan.port 
+    #       }
+    #     }.to_json
+    #   end
+    # end
+
+    # post '/work/results/:worker_id/:uuid' do
+    #   worker_id = params['worker_id']
+    #   uuid = params['uuid']
+    #   result = JSON.parse(request.body.first).first
+
+    #   scan = Scan.find_by("scan_id": uuid)
+    #   scan.worker_id = worker_id
+    #   scan.state = "COMPLETED"
+    #   scan.grade = result["compliance"]["grade"] || nil
+    #   scan.raw_scan = result.to_json
+    #   scan.save
+    # end
+
+    get '/scan/results' do
+      uuid = params[:uuid]
+
+      # If we don't get a uuid, we don't know what scan to pick up
+      return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
+
+      scan = Scan.find_by("scan_id": uuid)
+
+      if scan.nil?
+        return {"scan" => "UNKNOWN"}.to_json
+      end
+
+      case scan.state
+      when "QUEUED"
+        return {"status" => "QUEUED"}.to_json
+      when "ERRORED"
+        return {"status" => "ERRORED"}.to_json
+      when "RUNNNING"
+        return {"status" => "RUNNNING"}.to_json
+      when "COMPLETED"
+        return scan.raw_scan
+      else
+        return {"scan" => "UNKNOWN"}.to_json
       end
     end
 
-    # Configure all the secure headers we want to use
-    use SecureHeaders::Middleware
-    SecureHeaders::Configuration.default do |config|
-      config.cookies = {
-        secure: true, # mark all cookies as "Secure"
-        httponly: true, # mark all cookies as "HttpOnly"
-      }
-      config.hsts = "max-age=31536000; includeSubdomains; preload"
-      config.x_frame_options = "DENY"
-      config.x_content_type_options = "nosniff"
-      config.x_xss_protection = "1; mode=block"
-      config.x_download_options = "noopen"
-      config.x_permitted_cross_domain_policies = "none"
-      config.referrer_policy = "no-referrer"
-      config.csp = {
-        default_src: ["'none'"],
-        script_src: ["'none'"],
-        frame_ancestors: ["'none'"],
-        upgrade_insecure_requests: true, # see https://www.w3.org/TR/upgrade-insecure-requests/
-      }
-    end
+    get '/stats' do
+      queued_max_age = 0
+      oldest = Scan.where(state: "QUEUED").minimum(:creation_time)
 
-    register Sinatra::Namespace
+      if oldest
+        queued_max_age = (Time.now - oldest).to_i
+      end
 
-    before do
-      headers "Access-Control-Allow-Methods" => "GET, POST"
-      headers "Access-Control-Allow-Origin" => "*"
-      headers "Access-Control-Max-Age" => "86400"
-      headers "Cache-control" => "no-store"
-      headers "Pragma" => "no-cache"
-      headers "Server" => "ssh_scan_api"
-    end
-
-    # Custom 404 handling
-    not_found do
-      content_type "text/plain"
-      "Invalid request, see API documentation here: \
-https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
-    end
-
-    get '/' do
-      content_type "text/plain"
-      "See API documentation here: \
-https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
-    end
-
-    get '/robots.txt' do
-      content_type "text/plain"
-      "User-agent: *\nDisallow: /\n"
-    end
-
-    get '/contribute.json' do
-      content_type :json
-      SSHScan::Constants::CONTRIBUTE_JSON.to_json
-    end
-
-    get '/__version__' do
       {
-        :ssh_scan_version => SSHScan::VERSION,
-        :api_version => SSHScan::API_VERSION,
+        "SCAN_STATES" => {
+          "QUEUED" => Scan.where(state: "QUEUED").count,
+          "BATCH_QUEUED" => Scan.where(state: "BATCH_QUEUED").count,
+          "RUNNING" => Scan.where(state: "RUNNING").count,
+          "ERRORED" => Scan.where(state: "ERRORED").count,
+          "COMPLETED" => Scan.where(state: "COMPLETED").count,
+        },
+       "QUEUED_MAX_AGE" => queued_max_age,
+        "GRADE_REPORT" => {
+          "A" => Scan.where(grade: "A").count,
+          "B" => Scan.where(grade: "B").count,
+          "C" => Scan.where(grade: "C").count,
+          "D" => Scan.where(grade: "D").count,
+          "F" => Scan.where(grade: "F").count,
+        }
+        # "AUTH_METHOD_REPORT" => settings.db.auth_method_report
       }.to_json
     end
 
-    namespace "/api/v1" do
-      before do
-        content_type :json
-      end
-
-      post '/scan' do
-        # Require authentication for this route only when auth is enabled
-        authenticated? if settings.authentication == true
-        
-        batch = false
-        if params["batch"] == "true"
-          batch = true
-        end
-
-        target = params["target"]
-        port = params["port"] ? params["port"].to_i : 22
-
-        # Let's stop garbage targets in their tracks
-        if settings.target_validator.invalid?(target)
-          return {"error" => "invalid target"}.to_json
-        elsif !target.ip_addr? && !target.fqdn?
-          return {"error" => "invalid target"}.to_json
-        end
-
-        # Let's make sure we only scan ports we're allowed to scan
-        if !settings.allowed_ports.include?(port)
-          return {"error" => "invalid port"}.to_json 
-        end
-
-        # Check DB to see if we have a recent scans (<= 1 min ago) for this target
-        results = settings.db.find_recent_scans(target, port)
-
-        # If we have recent results, return that UUID, if not assign a new one
-        if results.any?
-          uuid = results.first
-        else
-          uuid = SecureRandom.uuid
-
-          if batch == true
-            settings.db.batch_queue_scan(target, port, uuid)
-          else
-            settings.db.queue_scan(target, port, uuid)
-          end
-        end
-
-        {
-          uuid: uuid
-        }.to_json
-      end
-
-      get '/scan/results' do
-        # Require authentication for this route only when auth is enabled
-        authenticated? if settings.authentication == true
-
-        uuid = params[:uuid]
-
-        # If we don't get a uuid, we don't know what scan to pick up
-        return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
-
-        case settings.db.get_scan_state(uuid)
-        when "QUEUED"
-          return {"status" => "QUEUED"}.to_json
-        when "ERRORED"
-          return {"status" => "ERRORED"}.to_json
-        when "RUNNNING"
-          return {"status" => "RUNNNING"}.to_json
-        when "COMPLETED"
-          return settings.db.get_scan(uuid)
-        else
-          return {"scan" => "UNKNOWN"}.to_json
-        end
-      end
-
-      get '/work' do
-        # Always require authentication for this route
-        authenticated?
-
-        worker_id = params[:worker_id]
-
-        uuid = settings.db.next_scan_in_queue
-
-        if uuid.nil?
-          return {"work" => false}.to_json
-        else
-          work = settings.db.get_work(uuid)
-          settings.db.run_scan(uuid)
-          return work.to_json
-        end
-      end
-
-      post '/work/results/:worker_id/:uuid' do
-        # Always require authentication for this route
-        authenticated?
-
-        worker_id = params['worker_id']
-        uuid = params['uuid']
-        result = JSON.parse(request.body.first).first
-        socket = {}
-        socket["target"] = result['ip']
-        socket["port"] = result['port']
-
-        if worker_id.empty? || uuid.empty?
-          return {"accepted" => "false"}.to_json
-        end
-
-        if result["error"]
-          settings.db.error_scan(uuid, worker_id, result.to_json)
-        else
-          settings.db.complete_scan(uuid, worker_id, result.to_json)
-        end
-      end
-
-      get '/stats' do
-        {
-          "SCAN_STATES" => {
-            "QUEUED" => settings.db.queue_count,
-            "BATCH_QUEUED" => settings.db.batch_queue_count,
-            "RUNNING" => settings.db.run_count,
-            "ERRORED" => settings.db.error_count,
-            "COMPLETED" => settings.db.complete_count,
-          },
-          "QUEUED_MAX_AGE" => settings.db.queued_max_age,
-          "GRADE_REPORT" => settings.db.grade_report,
-          "AUTH_METHOD_REPORT" => settings.db.auth_method_report
-        }.to_json
-      end
-
-      get '/__lbheartbeat__' do
-        {
-          :status  => "OK",
-          :message => "Keep sending requests. I am still alive."
-        }.to_json
-      end
+    get '/scans' do
+      @scans = Scan.all
+      @scans.to_json
     end
 
-    def authenticated?
-      token = request.env['HTTP_SSH_SCAN_AUTH_TOKEN']
+    # get '/scans/:scan_id/?' do
+    #   @scan = Scan.find_by(scan_id: params[:scan_id])
+    #   @scan.to_json
+    # end
 
-      # If a token is not provided, only localhost can proceed
-      if token.nil? && request.ip != "127.0.0.1"
-        halt '{"error" : "authentication failure"}'
-      end
-
-      # If a token is provided, it must be valid to proceed
-      if token && settings.authenticator.valid_token?(token) == false
-        halt '{"error" : "authentication failure"}'
-      end
+    get '/__lbheartbeat__' do
+      {
+        :status  => "OK",
+        :message => "Keep sending requests. I am still alive."
+      }.to_json
     end
 
-    def self.run!(options = {}, &block)
-      set options
-
-      configure do
-        enable :logging
-        set :bind, ENV['sshscan.api.bind'] || options["bind"] || '127.0.0.1'
-        set :server, "thin"
-        set :logger, Logger.new(STDOUT)
-        set :db, SSHScan::Database.from_hash(options)
-        set :target_validator, SSHScan::TargetValidator.new(options["config_file"])
-        set :results, {}
-        set :authentication, options["authentication"]
-        set :authenticator, SSHScan::Authenticator.from_config_file(
-          options["config_file"]
-        )
-        set :environment, :production
-        set :allowed_ports, options["allowed_ports"]
-        set :protection, false
-      end
-
-      super do |server|
-        # No SSL on app, SSL termination happens in nginx for a prod deployment
-        server.ssl = false
-      end
-    end
   end
 end
