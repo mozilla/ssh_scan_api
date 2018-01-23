@@ -3,8 +3,6 @@ require 'ssh_scan_api/version'
 require 'ssh_scan_api/models/scan'
 require 'logger'
 
-
-
 class SSHScan::Worker
   def initialize()
     @worker_id = SecureRandom.uuid
@@ -37,19 +35,27 @@ class SSHScan::Worker
 
       scan.state = "COMPLETED"
       scan.worker_id = @worker_id
+
+      if results.first["compliance"]
+        scan.grade = results.first["compliance"]["grade"]
+      end
+      
       scan.raw_scan = results.first.to_json
       scan.save
     else
       @log.info("No work available")
+      sleep @poll_interval
     end
   end
 
   def run!
     setup_db_connection
-    
+
     loop do
-      do_work
-      sleep @poll_interval
+      #begin
+        do_work
+      #rescue
+      #end
     end
   end
 end

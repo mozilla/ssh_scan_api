@@ -6,14 +6,15 @@ require 'secure_headers'
 require 'ssh_scan_api/models/scan'
 require 'ssh_scan_api/target_validator'
 require 'ssh_scan_api/authenticator'
+require 'pg'
 
 enable :logging
-set :database, {adapter: "sqlite3", database: "foo.sqlite3"}
+set :database_file, "../../config/database/database.yml"
 set :server, 'thin'
 set :logger, Logger.new(STDOUT)
 set :target_validator, SSHScan::TargetValidator.new("./config/api/config.yml")
 set :authenticator, SSHScan::Authenticator.new("./config/api/config.yml")
-set :environment, :production
+set :environment, :test
 set :allowed_ports, [22]
 set :protection, false
 

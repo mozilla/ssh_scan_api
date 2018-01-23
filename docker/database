@@ -1,4 +1,3 @@
 FROM postgres AS database
 MAINTAINER Jonathan Claudius
-ADD ./database/schema.sql /app/schema.sql
 ADD ./database/init-user-db-docker.sh /docker-entrypoint-initdb.d/
