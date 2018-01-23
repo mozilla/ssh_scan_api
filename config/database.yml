@@ -10,7 +10,7 @@ development:
   database: ssh_observatory
   username: sshobs
   host: database
-  pool: 5
+  pool: 20
   timeout: 5000
 # production:
 #   adapter: postgresql
