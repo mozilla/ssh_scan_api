@@ -8,16 +8,6 @@ require 'ssh_scan_api/target_validator'
 require 'ssh_scan_api/authenticator'
 require 'pg'
 
-enable :logging
-set :database_file, "../../config/database/database.yml"
-set :server, 'thin'
-set :logger, Logger.new(STDOUT)
-set :target_validator, SSHScan::TargetValidator.new("./config/api/config.yml")
-set :authenticator, SSHScan::Authenticator.new("./config/api/config.yml")
-set :environment, :test
-set :allowed_ports, [22]
-set :protection, false
-
 class SSHScan::Api < Sinatra::Base
   include SSHScan
   register Sinatra::Namespace
@@ -91,19 +81,17 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     post '/scan' do
       port = params["port"] || 22
 
-      # existing_scan = Scan.find_by("target": params["target"], "port": port)
-
-      # if existing_scan
-      #   return {"uuid": existing_scan.scan_id}.to_json
-      # end
-
-      scan = Scan.new do |s|
-        s.scan_id = SecureRandom.uuid
-        s.creation_time = Time.now
-        s.target = params["target"]
-        s.port = port
-        s.state = "QUEUED"
-        s.save
+      begin
+        scan = Scan.new do |s|
+          s.scan_id = SecureRandom.uuid
+          s.creation_time = Time.now
+          s.target = params["target"]
+          s.port = port
+          s.state = "QUEUED"
+          s.save
+        end
+      ensure
+        ActiveRecord::Base.connection_pool.release_connection
       end
 
       return {"uuid": scan.scan_id}.to_json
@@ -115,7 +103,11 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       # If we don't get a uuid, we don't know what scan to pick up
       return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
 
-      scan = Scan.find_by("scan_id": uuid)
+      begin
+        scan = Scan.find_by("scan_id": uuid)
+      ensure
+        ActiveRecord::Base.connection_pool.release_connection
+      end
 
       if scan.nil?
         return {"scan" => "UNKNOWN"}.to_json
@@ -137,30 +129,41 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
     get '/stats' do
       queued_max_age = 0
-      oldest = Scan.where(state: "QUEUED").minimum(:creation_time)
+
+      begin
+        oldest = Scan.where(state: "QUEUED").minimum(:creation_time)
+      ensure
+        ActiveRecord::Base.connection_pool.release_connection
+      end
 
       if oldest
         queued_max_age = (Time.now - oldest).to_i
       end
 
-      {
-        "SCAN_STATES" => {
-          "QUEUED" => Scan.where(state: "QUEUED").count,
-          "BATCH_QUEUED" => Scan.where(state: "BATCH_QUEUED").count,
-          "RUNNING" => Scan.where(state: "RUNNING").count,
-          "ERRORED" => Scan.where(state: "ERRORED").count,
-          "COMPLETED" => Scan.where(state: "COMPLETED").count,
-        },
-       "QUEUED_MAX_AGE" => queued_max_age,
-        "GRADE_REPORT" => {
-          "A" => Scan.where(grade: "A").count,
-          "B" => Scan.where(grade: "B").count,
-          "C" => Scan.where(grade: "C").count,
-          "D" => Scan.where(grade: "D").count,
-          "F" => Scan.where(grade: "F").count,
+      begin
+        report = {
+          "SCAN_STATES" => {
+            "QUEUED" => Scan.where(state: "QUEUED").count,
+            "BATCH_QUEUED" => Scan.where(state: "BATCH_QUEUED").count,
+            "RUNNING" => Scan.where(state: "RUNNING").count,
+            "ERRORED" => Scan.where(state: "ERRORED").count,
+            "COMPLETED" => Scan.where(state: "COMPLETED").count,
+          },
+         "QUEUED_MAX_AGE" => queued_max_age,
+          "GRADE_REPORT" => {
+            "A" => Scan.where(grade: "A").count,
+            "B" => Scan.where(grade: "B").count,
+            "C" => Scan.where(grade: "C").count,
+            "D" => Scan.where(grade: "D").count,
+            "F" => Scan.where(grade: "F").count,
+          }
+          # "AUTH_METHOD_REPORT" => settings.db.auth_method_report
         }
-        # "AUTH_METHOD_REPORT" => settings.db.auth_method_report
-      }.to_json
+      ensure
+        ActiveRecord::Base.connection_pool.release_connection
+      end
+
+      return report.to_json
     end
 
     # get '/scans' do
@@ -174,6 +177,30 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
         :message => "Keep sending requests. I am still alive."
       }.to_json
     end
-
   end
+
+  def self.run!(options = {}, &block)
+    set options
+
+    configure do
+      enable :logging
+      set :bind, ENV['SSHAPIBIND'] || options["bind"] || '127.0.0.1'
+      set :port, 8000
+      db_configs = YAML.load_file(File.join(File.dirname(__FILE__),"../../config/database.yml"))
+      set :database, db_configs[ENV['SSHSCANDATABASEENV']] || db_configs[options["database_environment"]]
+      set :server, 'thin'
+      set :logger, Logger.new(STDOUT)
+      set :target_validator, SSHScan::TargetValidator.new(File.join(File.dirname(__FILE__),"../../config/api/config.yml"))    
+      set :authenticator, SSHScan::Authenticator.new(File.join(File.dirname(__FILE__),"../../config/api/config.yml")) 
+      set :environment, :test
+      set :allowed_ports, [22]
+      set :protection, false
+    end
+
+    super do |server|
+      # No SSL on app, SSL termination happens in nginx for a prod deployment
+      server.ssl = false
+    end
+  end
+
 end

@@ -4,4 +4,5 @@ COPY ./lib /app/lib
 COPY ./bin /app/bin
 COPY ./data /app/data
 COPY ./config/policies/ /app/config/policies
-COPY ./config/worker/config.yml /app/config/worker/config.yml
+COPY ./config/database.yml /app/config/database.yml
+COPY ./Rakefile /app/Rakefile

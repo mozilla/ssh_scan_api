@@ -5,12 +5,12 @@ require 'rspec'
 require 'rspec/core'
 require 'rspec/core/rake_task'
 require 'bundler/setup'
-require 'ssh_scan_api/version'
 require "sinatra/activerecord/rake"
 
 namespace :db do
   task :load_config do
-    require "./lib/ssh_scan_api/api"
+    require File.join(File.dirname(__FILE__), "./lib/ssh_scan_api/version")
+    require File.join(File.dirname(__FILE__), "./lib/ssh_scan_api/api")
   end
 end
 

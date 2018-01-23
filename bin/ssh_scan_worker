@@ -5,6 +5,10 @@ $:.unshift File.join(File.dirname(__FILE__), "../lib")
 require 'ssh_scan'
 require 'ssh_scan_api/worker'
 
+env = ARGV[0] || "development"
+
+# Usage: ruby ./bin/ssh_scan_worker [test/development/production]
+
 worker = SSHScan::Worker.new()
-worker.set_environment("test")
+worker.set_environment(env.chomp)
 worker.run!

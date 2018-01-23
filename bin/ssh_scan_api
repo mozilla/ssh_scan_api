@@ -1,16 +1,12 @@
 #!/usr/bin/env ruby
-
 $:.unshift File.join(File.dirname(__FILE__), "../lib")
-
 require 'ssh_scan_api'
 
-# Get the api config from command-line or via an example location
-config_file = ARGV[0] ||
-              File.join(
-                File.dirname(__FILE__),
-                "../config/api/config.yml"
-              )
-opts = YAML.load_file(config_file)
-opts["config_file"] = config_file
+# Hack to make development DB setup non-manual
+if ENV['SSHSCANDATABASEENV'] == "development"
+  `RAILS_ENV='development' RACK_ENV='development' rake db:drop || true`
+  `RAILS_ENV='development' RACK_ENV='development' rake db:create`
+  `RAILS_ENV='development' RACK_ENV='development' rake db:migrate`
+end
 
-SSHScan::API.run!(opts)
+SSHScan::Api.run!()

@@ -2,4 +2,6 @@ FROM sshscanapi_base:latest
 MAINTAINER Jonathan Claudius
 COPY ./lib /app/lib
 COPY ./bin /app/bin
+COPY ./config/database.yml /app/config/database.yml
 COPY ./config/api/config.yml /app/config/api/config.yml
+COPY ./Rakefile /app/Rakefile

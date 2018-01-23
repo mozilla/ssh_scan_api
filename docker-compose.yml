@@ -11,8 +11,8 @@ services:
     # Uncomment below if you would like direct access to the DB for debugging/troubleshooting, this is not enabled by default for safety reasons
     # ports:
     #   - 5432:5432
-    volumes:
-      - ./postgres-data:/var/lib/postgresql/data
+    # volumes:
+    #   - ./postgres-data:/var/lib/postgresql/data
     networks:
       - default
     restart: unless-stopped
@@ -20,14 +20,11 @@ services:
     build:
       context: .
       dockerfile: ./docker/api
-    tty: true
-    stdin_open: true
     ports:
       - 8000:8000
     environment:
-      - sshscan.api.bind=api
-      - sshscan.database.host=database
-      - sshscan.worker.token=EXAMPLE_TOKEN_CHANGE_ME
+      - SSHAPIBIND=api
+      - SSHSCANDATABASEENV=development
     links:
       - database
     networks:
@@ -36,21 +33,24 @@ services:
     depends_on:
       - "base"
       - "database"
+    stdin_open: true
+    tty: true
+    working_dir: /app
     command: ["/app/docker/wait-for-it.sh", "database:5432", "--", "/app/bin/ssh_scan_api"]
   worker:
     build:
       context: .
       dockerfile: ./docker/worker
     environment:
-      - sshscan.api.host=api
-      - sshscan.worker.token=EXAMPLE_TOKEN_CHANGE_ME
-    command: /app/bin/ssh_scan_worker
+      - SSHSCANDATABASEENV=development   
     links:
-      - api
+      - database
     networks:
       - default
     depends_on:
       - "base"
+      - "database"
       - "api"
     restart: always
+    working_dir: /app
     command: ["/app/docker/wait-for-it.sh", "api:8000", "--", "/app/bin/ssh_scan_worker"]

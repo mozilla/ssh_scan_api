@@ -16,7 +16,12 @@ class SSHScan::Worker
   def set_environment(environment)
     ActiveRecord::Base.logger = Logger.new(STDOUT)
 
-    config = YAML.load_file(File.join(File.dirname(__FILE__),"../../config/database/database.yml"))
+    config = YAML.load_file(File.join(File.dirname(__FILE__),"../../config/database.yml"))
+
+    # Allow environmental variable override on environment
+    if ENV['SSHSCANDATABASEENV']
+      environment = ENV['SSHSCANDATABASEENV']
+    end
 
     case environment
     when "test"
@@ -63,10 +68,7 @@ class SSHScan::Worker
 
   def run!
     loop do
-      #begin
-        do_work
-      #rescue
-      #end
+      do_work
     end
   end
 end

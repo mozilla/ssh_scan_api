@@ -34,12 +34,12 @@ authentication: false
 #     token       : INSERT_WORKER1_TOKEN
 
 # Define database configuration
-database:
- type: postgres
- name: ssh_observatory
- username: sshobs
- server: 127.0.0.1
- port: 5432
+# database:
+#  type: postgres
+#  name: ssh_observatory
+#  username: sshobs
+#  server: 127.0.0.1
+#  port: 5432
 
 # Define targets that we feel are invalid targets for scanning (customize however you like, these are our defaults)
 invalid_target_regexes:
