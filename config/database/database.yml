@@ -1,6 +1,21 @@
-adapter: postgresql
-database: ssh_observatory
-username: sshobs
-host: 127.0.0.1
-pool: 5
-timeout: 5000
+test:
+  adapter: postgresql
+  database: ssh_observatory
+  username: sshobs
+  host: 127.0.0.1
+  pool: 5
+  timeout: 5000
+development:
+  adapter: postgresql
+  database: ssh_observatory
+  username: sshobs
+  host: 127.0.0.1
+  pool: 5
+  timeout: 5000
+production:
+  adapter: postgresql
+  database: ssh_observatory
+  username: sshobs
+  host: 127.0.0.1
+  pool: 5
+  timeout: 5000

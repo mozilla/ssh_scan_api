@@ -6,4 +6,5 @@ require 'ssh_scan'
 require 'ssh_scan_api/worker'
 
 worker = SSHScan::Worker.new()
+worker.set_environment("test")
 worker.run!
