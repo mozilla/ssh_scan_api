@@ -1,7 +1,7 @@
 class CreateScanTable < ActiveRecord::Migration[5.1]
   def change
-  	create_table :scans do |t|
-  	  t.string :scan_id
+    create_table :scans do |t|
+      t.string :scan_id
       t.datetime :creation_time
       t.string :target
       t.integer :port
