@@ -8,9 +8,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/database
-    # Uncomment below if you would like direct access to the DB for debugging/troubleshooting, this is not enabled by default for safety reasons
-    # ports:
-    #   - 5432:5432
+    ports:
+      - 5432:5432
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     networks:
