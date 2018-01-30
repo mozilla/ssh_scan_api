@@ -10,7 +10,7 @@ describe do
   include Rack::Test::Methods
 
   def app
-    SSHScan::Api.new
+    SSHScan::Api.new({environment: 'test'})
   end
 
   it "should be able to GET / correctly" do

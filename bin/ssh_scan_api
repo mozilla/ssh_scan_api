@@ -2,11 +2,10 @@
 $:.unshift File.join(File.dirname(__FILE__), "../lib")
 require 'ssh_scan_api'
 
-# Hack to make development DB setup non-manual
-if ENV['SSHSCANDATABASEENV'] == "development"
-  `RAILS_ENV='development' RACK_ENV='development' rake db:drop || true`
-  `RAILS_ENV='development' RACK_ENV='development' rake db:create`
-  `RAILS_ENV='development' RACK_ENV='development' rake db:migrate`
-end
+# Usage: ruby ./bin/ssh_scan_api
 
-SSHScan::Api.run!()
+options = {
+	environment: ARGV[0] || "development"
+}
+
+SSHScan::Api.run!(options)

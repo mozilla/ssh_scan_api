@@ -11,6 +11,7 @@ require 'pg'
 class SSHScan::Api < Sinatra::Base
   include SSHScan
   register Sinatra::Namespace
+  register Sinatra::ActiveRecordExtension
 
   before do
     content_type :json
@@ -83,7 +84,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
       # Check to see if there is a recent scan we offer
       begin
-        latest_scan = Scan.where(["target = ? and port = ?", "sshscan.rubidus.com", 22]).last
+        latest_scan = Scan.where(["target = ? and port = ?", params["target"], port]).last
 
         # Return prior scan results if run within 2min of now
         if latest_scan && (Time.now - latest_scan.creation_time < 120)
@@ -179,11 +180,6 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
       return report.to_json
     end
 
-    # get '/scans' do
-    #   @scans = Scan.all
-    #   @scans.to_json
-    # end
-
     get '/__lbheartbeat__' do
       {
         :status  => "OK",
@@ -197,23 +193,19 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
     configure do
       enable :logging
-      set :bind, ENV['SSHAPIBIND'] || options["bind"] || '127.0.0.1'
+      set :bind, ENV['SSH_SCAN_API_BIND'] || '127.0.0.1'
       set :port, 8000
-      db_configs = YAML.load_file(File.join(File.dirname(__FILE__),"../../config/database.yml"))
-      set :database, db_configs[ENV['SSHSCANDATABASEENV']] || db_configs[options["database_environment"]]
-      set :server, 'thin'
+      set :server, "thin"
       set :logger, Logger.new(STDOUT)
-      set :target_validator, SSHScan::TargetValidator.new(File.join(File.dirname(__FILE__),"../../config/api/config.yml"))    
-      set :authenticator, SSHScan::Authenticator.new(File.join(File.dirname(__FILE__),"../../config/api/config.yml")) 
-      set :environment, :test
-      set :allowed_ports, [22]
+      set :database_file, File.join(File.dirname(__FILE__),"../../config/database.yml")
+      set :authentication, false
+      set :authenticator, SSHScan::Authenticator.from_config_file(File.join(File.dirname(__FILE__),"../../config/api/config.yml"))
+      set :target_validator, SSHScan::TargetValidator.new(File.join(File.dirname(__FILE__),"../../config/api/config.yml"))
+      set :allowed_ports, options["allowed_ports"]
       set :protection, false
     end
 
-    super do |server|
-      # No SSL on app, SSL termination happens in nginx for a prod deployment
-      server.ssl = false
-    end
+    super
   end
 
 end

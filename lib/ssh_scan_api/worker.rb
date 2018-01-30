@@ -40,6 +40,10 @@ class SSHScan::Worker
 
     # If work to do, then do it
     if scan
+      scan.state = "RUNNING"
+      scan.worker_id = @worker_id
+      scan.save
+
       @log.info("Starting Scan: #{scan.scan_id}")
       options = {
         "sockets" => [[scan.target,scan.port.to_s].join(":")],
