@@ -81,6 +81,19 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     post '/scan' do
       port = params["port"] || 22
 
+      # Check to see if there is a recent scan we offer
+      begin
+        latest_scan = Scan.where(["target = ? and port = ?", "sshscan.rubidus.com", 22]).last
+
+        # Return prior scan results if run within 2min of now
+        if latest_scan && (Time.now - latest_scan.creation_time < 120)
+          return {"uuid": latest_scan.scan_id}.to_json
+        end
+      rescue
+        ActiveRecord::Base.connection_pool.release_connection
+      end
+
+      # Perform a new scan
       begin
         scan = Scan.new do |s|
           s.scan_id = SecureRandom.uuid
