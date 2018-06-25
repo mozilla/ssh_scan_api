@@ -1,5 +1,13 @@
 FROM sshscanapi_base:latest
 MAINTAINER Jonathan Claudius
+COPY ./Gemfile /app/Gemfile
+COPY ./ssh_scan_api.gemspec /app/ssh_scan_api.gemspec
+COPY ./db /app/db
+COPY ./docker/wait-for-it.sh /app/docker/wait-for-it.sh
+RUN cd /app && \
+    gem install bundler && \
+    bundle install && \
+    chmod u+x /app/docker/wait-for-it.sh
 COPY ./lib /app/lib
 COPY ./bin /app/bin
 COPY ./config/database.yml /app/config/database.yml

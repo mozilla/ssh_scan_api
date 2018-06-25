@@ -119,26 +119,88 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
 
       begin
         scan = Scan.find_by("scan_id": uuid)
+
+        if scan.nil?
+          return {"scan" => "UNKNOWN"}.to_json
+        end
+
+        case scan.state
+        when "QUEUED"
+          return {"status" => "QUEUED"}.to_json
+        when "ERRORED"
+          return {"status" => "ERRORED"}.to_json
+        when "RUNNNING"
+          return {"status" => "RUNNNING"}.to_json
+        when "COMPLETED"
+          return scan.raw_scan
+        else
+          return {"status" => "UNKNOWN"}.to_json
+        end
+      ensure
+        ActiveRecord::Base.connection_pool.release_connection
+      end
+    end
+
+    get '/work' do
+      # Always require authentication for this route
+      #authenticated?
+
+      worker_id = params[:worker_id]
+
+      #uuid = settings.db.next_scan_in_queue
+      scan = SSHScan::Scan.find_by("state": "QUEUED")
+
+      if scan
+        scan.state = "RUNNING"
+        scan.worker_id = worker_id
+        scan.save
+
+        return {
+          "work" => {
+            "uuid" => scan.scan_id,
+            "target" => scan.target,
+            "port" => scan.port,
+          }
+        }.to_json
+      else
+        return {"work" => false}.to_json
+      end
+    end
+
+    post '/work/results/:worker_id/:uuid' do
+      # Always require authentication for this route
+      #authenticated?
+
+      worker_id = params[:worker_id]
+      uuid = params[:uuid]
+      result = JSON.parse(request.body.first).first
+
+      if worker_id.empty? || uuid.empty?
+        return {"accepted" => "false"}.to_json
+      end
+
+      begin
+        scan = Scan.find_by("scan_id": uuid)
+
+        # Make sure we have a relevant match scan
+        return {"accepted" => "false"}.to_json unless scan
+
+        if result["error"]
+          scan.state = "ERRORED"
+          scan.worker_id = worker_id
+          scan.raw_scan = result.to_json
+          scan.save
+        else
+          scan.state = "COMPLETED"
+          scan.worker_id = worker_id
+          scan.raw_scan = result.to_json
+          scan.save
+        end
       ensure
         ActiveRecord::Base.connection_pool.release_connection
       end
 
-      if scan.nil?
-        return {"scan" => "UNKNOWN"}.to_json
-      end
-
-      case scan.state
-      when "QUEUED"
-        return {"status" => "QUEUED"}.to_json
-      when "ERRORED"
-        return {"status" => "ERRORED"}.to_json
-      when "RUNNNING"
-        return {"status" => "RUNNNING"}.to_json
-      when "COMPLETED"
-        return scan.raw_scan
-      else
-        return {"scan" => "UNKNOWN"}.to_json
-      end
+      return {"accepted" => "true"}
     end
 
     get '/stats' do

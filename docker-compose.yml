@@ -1,9 +1,5 @@
 version: '2'
 services:
-  base:
-    build:
-      context: .
-      dockerfile: ./docker/base
   database:
     build:
       context: .
@@ -29,7 +25,6 @@ services:
       - default
     restart: always
     depends_on:
-      - "base"
       - "database"
     stdin_open: true
     tty: true
@@ -44,7 +39,6 @@ services:
     networks:
       - default
     depends_on:
-      - "base"
       - "database"
       - "api"
     restart: always
