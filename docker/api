@@ -1,4 +1,4 @@
-FROM sshscanapi_base:latest
+FROM ruby:latest
 MAINTAINER Jonathan Claudius
 COPY ./Gemfile /app/Gemfile
 COPY ./ssh_scan_api.gemspec /app/ssh_scan_api.gemspec
