@@ -30,17 +30,3 @@ services:
     tty: true
     working_dir: /app
     command: ["/app/docker/wait-for-it.sh", "database:5432", "--", "/app/bin/ssh_scan_api"]
-  worker:
-    build:
-      context: .
-      dockerfile: ./docker/worker  
-    links:
-      - database
-    networks:
-      - default
-    depends_on:
-      - "database"
-      - "api"
-    restart: always
-    working_dir: /app
-    command: ["/app/docker/wait-for-it.sh", "api:8000", "--", "/app/bin/ssh_scan_worker"]
