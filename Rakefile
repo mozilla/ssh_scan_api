@@ -9,7 +9,7 @@ require "sinatra/activerecord/rake"
 
 namespace :db do
   task :load_config do
-    require File.join(File.dirname(__FILE__), "./lib/ssh_scan_api/api")
+    require "./lib/ssh_scan_api/api"
   end
 end
 

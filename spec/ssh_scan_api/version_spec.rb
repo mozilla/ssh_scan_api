@@ -12,17 +12,17 @@ describe SSHScan::Api::VERSION do
 
     expect(tokens.size).to be_between(3,4).inclusive
 
-	if tokens.size == 3
-	  tokens.each do |token|
-        expect(token).to be_kind_of(::String)
-        expect(token.to_i).to be_between(0,50).inclusive
-	  end
-	else tokens.size == 4
-	  expect(tokens[-1]).to match(/pre/)
-	  tokens[0,3].each do |token|
-        expect(token).to be_kind_of(::String)
-        expect(token.to_i).to be_between(0,50).inclusive
-	  end
-	end
+  	if tokens.size == 3
+  	  tokens.each do |token|
+          expect(token).to be_kind_of(::String)
+          expect(token.to_i).to be_between(0,50).inclusive
+  	  end
+  	else tokens.size == 4
+  	  expect(tokens[-1]).to match(/pre/)
+  	  tokens[0,3].each do |token|
+          expect(token).to be_kind_of(::String)
+          expect(token.to_i).to be_between(0,50).inclusive
+  	  end
+  	end
   end
 end

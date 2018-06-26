@@ -1,3 +1,5 @@
+ENV['RACK_ENV'] = 'test'
+
 require 'spec_helper'
 require 'ssh_scan_api'
 require 'rack/test'
@@ -9,11 +11,6 @@ describe SSHScan::Api::Api do
   include Rack::Test::Methods
 
   def app
-    ENV['SSHSCAN_API_HOST'] = '127.0.0.1'
-    ENV['SSHSCAN_API_PORT'] = '1337'
-    ENV['SSHSCAN_DATABASE_HOST'] = '127.0.0.1'
-    ENV['SSHSCAN_DATABASE_NAME'] = 'ssh_observatory'
-    ENV['SSHSCAN_DATABASE_USERNAME'] = 'sshobs'
     SSHScan::Api::Api.new()
   end
 

@@ -12,6 +12,17 @@ module SSHScan
   module Api
     
     class Api < Sinatra::Base
+      if ENV['RACK_ENV'] == 'test'
+        configure do
+          set :database_file, "lib/config/database.yml"
+          set :authentication, false
+          set :authenticator, SSHScan::Api::Authenticator.new()
+          set :target_validator, SSHScan::Api::TargetValidator.new()
+          set :allowed_ports, 22
+          set :protection, false
+        end
+      end
+
       include SSHScan
       register Sinatra::Namespace
       register Sinatra::ActiveRecordExtension
@@ -74,7 +85,7 @@ module SSHScan
 
       get '/__version__' do
         {
-          :api_version => SSHScan::API_VERSION,
+          :api_version => SSHScan::Api::VERSION,
         }.to_json
       end
 
