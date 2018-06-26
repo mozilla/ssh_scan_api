@@ -271,8 +271,8 @@ module SSHScan
 
           set :database, { adapter: database_adapter, database: database_name, username: database_username, host: database_host, pool: database_pool, timeout: database_timeout}
           set :authentication, ENV['SSHSCAN_API_AUTHENTICATION'] == "true" || false
-          set :authenticator, SSHScan::Api::Authenticator.from_config_file(File.join(File.dirname(__FILE__),"../../config/api/config.yml"))
-          set :target_validator, SSHScan::Api::TargetValidator.new(File.join(File.dirname(__FILE__),"../../config/api/config.yml"))
+          set :authenticator, SSHScan::Api::Authenticator.new()
+          set :target_validator, SSHScan::Api::TargetValidator.new()
           set :allowed_ports, options["allowed_ports"]
           set :protection, false
         end
