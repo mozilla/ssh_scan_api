@@ -1,14 +1,14 @@
 require 'spec_helper'
 require 'ssh_scan_api/target_validator'
 
-describe SSHScan::TargetValidator do
-  it "should allow anything sane by default" do  
-    target_validator = SSHScan::TargetValidator.new
-    expect(target_validator.valid?("127.0.0.1")).to be true
-    expect(target_validator.valid?("127.0.0.2")).to be true
-    expect(target_validator.valid?("::1")).to be true
+describe SSHScan::Api::TargetValidator do
+  it "should use defaults prescribed in constants" do  
+    target_validator = SSHScan::Api::TargetValidator.new
+    expect(target_validator.valid?("127.0.0.1")).to be false
+    expect(target_validator.valid?("127.0.0.2")).to be false
+    expect(target_validator.valid?("::1")).to be false
     expect(target_validator.valid?("ssh.mozilla.com")).to be true
-    expect(target_validator.valid?("localhost")).to be true
+    expect(target_validator.valid?("localhost")).to be false
 
     # Except these obvious invalids
     expect(target_validator.valid?(nil)).to be false
@@ -20,9 +20,11 @@ describe SSHScan::TargetValidator do
     config = {
       "invalid_target_regexes" => [
         "^127"
+      ],
+      "invalid_target_strings" => [
       ]
     }
-    target_validator = SSHScan::TargetValidator.new(config)
+    target_validator = SSHScan::Api::TargetValidator.new(config)
     expect(target_validator.valid?("127.0.0.1")).to be false
     expect(target_validator.valid?("127.0.0.2")).to be false
     expect(target_validator.valid?("::1")).to be true
@@ -34,9 +36,11 @@ describe SSHScan::TargetValidator do
     config = {
       "invalid_target_strings" => [
         "localhost"
+      ],
+      "invalid_target_regexes" => [
       ]
     }
-    target_validator = SSHScan::TargetValidator.new(config)
+    target_validator = SSHScan::Api::TargetValidator.new(config)
     expect(target_validator.valid?("127.0.0.1")).to be true
     expect(target_validator.valid?("127.0.0.2")).to be true
     expect(target_validator.valid?("::1")).to be true
@@ -48,9 +52,11 @@ describe SSHScan::TargetValidator do
     config = {
       "invalid_target_strings" => [
         "localhost"
+      ],
+      "invalid_target_regexes" => [
       ]
     }
-    target_validator = SSHScan::TargetValidator.new(config)
+    target_validator = SSHScan::Api::TargetValidator.new(config)
     expect(target_validator.valid?("127.0.0.1")).to be true
     expect(target_validator.valid?("127.0.0.2")).to be true
     expect(target_validator.valid?("::1")).to be true
@@ -58,21 +64,8 @@ describe SSHScan::TargetValidator do
     expect(target_validator.valid?("github.com")).to be true
   end
 
-  it "work the same when coming from a config file" do
-    config_path = "./config/api/config.yml"
-    target_validator = SSHScan::TargetValidator.new(config_path)
-    expect(target_validator.valid?("127.0.0.1")).to be false
-    expect(target_validator.valid?("127.0.0.2")).to be false
-    expect(target_validator.valid?("::1")).to be false
-    expect(target_validator.valid?("localhost")).to be false
-    expect(target_validator.valid?("github.com")).to be true
-    expect(target_validator.valid?("192.168.1.1")).to be false
-    expect(target_validator.valid?("172.18.1.1")).to be false
-    expect(target_validator.valid?("10.1.1.1")).to be false
-  end
-
   it "should invalid char on any invalid char" do
-    target_validator = SSHScan::TargetValidator.new()
+    target_validator = SSHScan::Api::TargetValidator.new()
 
     # individual chars
     expect(target_validator.invalid_char?("/")).to be true

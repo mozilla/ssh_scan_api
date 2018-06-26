@@ -3,9 +3,4 @@ $:.unshift File.join(File.dirname(__FILE__), "../lib")
 require 'ssh_scan_api'
 
 # Usage: ruby ./bin/ssh_scan_api
-
-options = {
-	environment: ARGV[0] || "development"
-}
-
-SSHScan::Api.run!(options)
+SSHScan::Api::Api.run!()

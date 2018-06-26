@@ -2,13 +2,13 @@ require 'spec_helper'
 require 'rspec'
 require 'ssh_scan_api/version'
 
-describe SSHScan::API_VERSION do
-  it "SSHScan::API_VERSION should be a string" do
-    expect(SSHScan::API_VERSION).to be_kind_of(::String)
+describe SSHScan::Api::VERSION do
+  it "SSHScan::Api::VERSION should be a string" do
+    expect(SSHScan::Api::VERSION).to be_kind_of(::String)
   end
 
-  it "SSHScan::API_VERSION should have appropriate version" do
-    tokens = SSHScan::API_VERSION.split(".")
+  it "SSHScan::Api::VERSION should have appropriate version" do
+    tokens = SSHScan::Api::VERSION.split(".")
 
     expect(tokens.size).to be_between(3,4).inclusive
 

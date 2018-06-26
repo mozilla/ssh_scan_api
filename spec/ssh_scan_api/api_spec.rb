@@ -1,4 +1,3 @@
-ENV['RACK_ENV'] = 'test'
 require 'spec_helper'
 require 'ssh_scan_api'
 require 'rack/test'
@@ -6,19 +5,23 @@ require 'json'
 
 require './lib/ssh_scan_api/api.rb'
 
-describe do
+describe SSHScan::Api::Api do
   include Rack::Test::Methods
 
   def app
-    SSHScan::Api.new({environment: 'test'})
+    ENV['SSHSCAN_API_HOST'] = '127.0.0.1'
+    ENV['SSHSCAN_API_PORT'] = '1337'
+    ENV['SSHSCAN_DATABASE_HOST'] = '127.0.0.1'
+    ENV['SSHSCAN_DATABASE_NAME'] = 'ssh_observatory'
+    ENV['SSHSCAN_DATABASE_USERNAME'] = 'sshobs'
+    SSHScan::Api::Api.new()
   end
 
   it "should be able to GET / correctly" do
     get "/"
     expect(last_response.status).to eql(200)
     expect(last_response.body).to eql(
-      "See API documentation here: \
-https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
+      "See API documentation here: https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     )
     expect(last_response["Content-Security-Policy"]).to eql("default-src 'none'; frame-ancestors 'none'; script-src 'none'; upgrade-insecure-requests") 
   end
@@ -27,7 +30,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
     get "/__version__"
     expect(last_response.status).to eql(200)
     expect(last_response.body).to eql({
-      :api_version => SSHScan::API_VERSION
+      :api_version => SSHScan::Api::VERSION
     }.to_json)
     expect(last_response["Content-Security-Policy"]).to eql("default-src 'none'; frame-ancestors 'none'; script-src 'none'; upgrade-insecure-requests") 
   end
@@ -89,7 +92,7 @@ https://github.com/mozilla/ssh_scan_api/wiki/ssh_scan-Web-API\n"
   end
 
   it "should return an error for status check on non-existant uuid" do
-    uuid = SecureRandom.uuid
+    uuid = ::SecureRandom.uuid
     get "/api/v1/scan/results?uuid=uuid_string", {:uuid => uuid}
 
     expect(last_response.status).to eql(200)

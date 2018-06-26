@@ -20,7 +20,13 @@ services:
     links:
       - database
     environment:
-      - SSH_SCAN_API_BIND=api
+      - SSHSCAN_API_HOST=api
+      - SSHSCAN_API_PORT=8000
+      - SSHSCAN_API_ALLOWED_PORTS=22
+      - SSHSCAN_API_AUTHENTICATION=false
+      - SSHSCAN_DATABASE_HOST=database
+      - SSHSCAN_DATABASE_NAME=ssh_observatory
+      - SSHSCAN_DATABASE_USERNAME=sshobs
     networks:
       - default
     restart: always
@@ -29,4 +35,4 @@ services:
     stdin_open: true
     tty: true
     working_dir: /app
-    command: ["/app/docker/wait-for-it.sh", "database:5432", "--", "/app/bin/ssh_scan_api"]
+    command: ["/app/bin/ssh_scan_api"]

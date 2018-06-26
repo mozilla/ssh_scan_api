@@ -1,9 +1,9 @@
 require 'spec_helper'
 require 'ssh_scan_api/authenticator'
 
-describe SSHScan::Authenticator do
+describe SSHScan::Api::Authenticator do
   it "should have sane default behavior" do
-    authenticator = SSHScan::Authenticator.new
+    authenticator = SSHScan::Api::Authenticator.new
     expect(authenticator.valid_token?("invalid_token")).to be false
   end
 
@@ -11,7 +11,7 @@ describe SSHScan::Authenticator do
     valid_token = SecureRandom.uuid
     invalid_token = SecureRandom.uuid
     config = {"users"=>[{"username"=>"starlord", "token"=> valid_token}]}
-    authenticator = SSHScan::Authenticator.new(config)
+    authenticator = SSHScan::Api::Authenticator.new(config)
     expect(authenticator.valid_token?(valid_token)).to be true
     expect(authenticator.valid_token?(invalid_token)).to be false
   end
@@ -20,7 +20,7 @@ describe SSHScan::Authenticator do
     valid_token = SecureRandom.uuid
     invalid_token = SecureRandom.uuid
     config = {"workers"=>[{"worker_name"=>"worker1", "token"=> valid_token}]}
-    authenticator = SSHScan::Authenticator.new(config)
+    authenticator = SSHScan::Api::Authenticator.new(config)
     expect(authenticator.valid_token?(valid_token)).to be true
     expect(authenticator.valid_token?(invalid_token)).to be false
   end
@@ -47,7 +47,7 @@ describe SSHScan::Authenticator do
     file.write(config.to_yaml)
     file.close
 
-    authenticator = SSHScan::Authenticator.from_config_file(file.path)
+    authenticator = SSHScan::Api::Authenticator.from_config_file(file.path)
     expect(authenticator.valid_token?(valid_token)).to be true
     expect(authenticator.valid_token?(invalid_token)).to be false
 
