@@ -2,4 +2,4 @@
 set -e
 
 createuser sshobs --no-password --superuser
-rake db:drop && rake db:create && rake db:migrate
+bundle exec rake db:drop && rake db:create && rake db:migrate
