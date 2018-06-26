@@ -36,3 +36,14 @@ services:
     tty: true
     working_dir: /app
     command: ["/app/bin/ssh_scan_api"]
+  worker:
+    build: https://github.com/mozilla/ssh_scan_worker.git
+    links:
+      - api
+    networks:
+      - default
+    depends_on:
+      - api
+    restart: always
+    working_dir: /app
+    command: ["/app/bin/ssh_scan_worker"]
