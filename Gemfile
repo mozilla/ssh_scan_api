@@ -1,5 +1,8 @@
 # Generated from /Users/jclaudius/code/ssh_scan_api/ssh_scan_api.gemspec
 source 'https://rubygems.org'
+
+gemspec
+
 gem "ssh_scan", "= 0.0.35"
 gem "sinatra", ">= 0"
 gem "sinatra-contrib", ">= 0"
