@@ -136,7 +136,7 @@ DEPENDENCIES
   pry
   rack-test
   rake
-  rspec (~> 3.0)
+  rspec (~> 3.7)
   rspec-its (~> 1.2)
   rubocop
   secure_headers (= 3.6.4)
