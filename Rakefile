@@ -5,7 +5,7 @@ require 'rspec'
 require 'rspec/core'
 require 'rspec/core/rake_task'
 require 'bundler/setup'
-require "sinatra/activerecord/rake"
+require 'sinatra/activerecord/rake'
 
 namespace :db do
   task :load_config do

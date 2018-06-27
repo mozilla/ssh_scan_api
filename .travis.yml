@@ -21,6 +21,9 @@ matrix:
     before_script:
       - chmod u+x database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
+    script:
+      - bundle install
+      - bundle exec rake spec
     after_success:
       - coveralls
   - rvm: 2.5.0
@@ -38,6 +41,9 @@ matrix:
     before_script:
       - chmod u+x database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
+    script:
+      - bundle install
+      - bundle exec rake spec
   - rvm: 2.3.6
     env:
       - LABEL=unit_tests
@@ -53,6 +59,9 @@ matrix:
     before_script:
       - chmod u+x database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
+    script:
+      - bundle install
+      - bundle exec rake spec
   - rvm: 2.2.9
     env:
       - SSHSCAN_API_HOST=127.0.0.1
@@ -68,6 +77,9 @@ matrix:
     before_script:
       - chmod u+x database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
+    script:
+      - bundle install
+      - bundle exec rake spec
   - rvm: 2.5.0
     env:
       - LABEL=docker_build_and_push
