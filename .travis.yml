@@ -18,11 +18,10 @@ matrix:
       - SSHSCAN_DATABASE_USERNAME=sshobs
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
     script:
       - bundle install
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
       - bundle exec rake spec
     after_success:
       - coveralls
@@ -38,11 +37,10 @@ matrix:
       - SSHSCAN_DATABASE_USERNAME=sshobs
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
     script:
       - bundle install
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
       - bundle exec rake spec
   - rvm: 2.3.6
     env:
@@ -56,11 +54,10 @@ matrix:
       - SSHSCAN_DATABASE_USERNAME=sshobs
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
     script:
       - bundle install
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
       - bundle exec rake spec
   - rvm: 2.2.9
     env:
@@ -74,11 +71,10 @@ matrix:
       - LABEL=unit_tests
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
     script:
       - bundle install
+      - chmod u+x database/init-user-db-travis.sh
+      - database/init-user-db-travis.sh
       - bundle exec rake spec
   - rvm: 2.5.0
     env:
