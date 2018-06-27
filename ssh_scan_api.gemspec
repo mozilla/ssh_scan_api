@@ -32,7 +32,7 @@ Gem::Specification.new do |s|
   s.add_dependency('pg', '~> 0.21')
   s.add_dependency('thin')
   s.add_dependency('haml')
-  s.add_dependency('rspec', '~> 3.0')
+  s.add_dependency('rspec', '~> 3.7')
   s.add_dependency('rspec-its', '~> 1.2')
   s.add_dependency('rake')
   s.add_dependency('rack-test')
