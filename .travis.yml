@@ -18,9 +18,11 @@ matrix:
       - SSHSCAN_DATABASE_USERNAME=sshobs
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+    script:
+      - createuser sshobs --no-password --superuser
+      - bundle install
+      - RAILS_ENV=test bundle exec rake db:drop && rake db:create && rake db:migrate
+      - bundle exec rake spec
     after_success:
       - coveralls
   - rvm: 2.5.0
@@ -35,9 +37,11 @@ matrix:
       - SSHSCAN_DATABASE_USERNAME=sshobs
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+    script:
+      - createuser sshobs --no-password --superuser
+      - bundle install
+      - RAILS_ENV=test bundle exec rake db:drop && rake db:create && rake db:migrate
+      - bundle exec rake spec
   - rvm: 2.3.6
     env:
       - LABEL=unit_tests
@@ -50,9 +54,11 @@ matrix:
       - SSHSCAN_DATABASE_USERNAME=sshobs
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+    script:
+      - createuser sshobs --no-password --superuser
+      - bundle install
+      - RAILS_ENV=test bundle exec rake db:drop && rake db:create && rake db:migrate
+      - bundle exec rake spec
   - rvm: 2.2.9
     env:
       - SSHSCAN_API_HOST=127.0.0.1
@@ -65,9 +71,11 @@ matrix:
       - LABEL=unit_tests
     services:
       - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+    script:
+      - createuser sshobs --no-password --superuser
+      - bundle install
+      - RAILS_ENV=test bundle exec rake db:drop && rake db:create && rake db:migrate
+      - bundle exec rake spec
   - rvm: 2.5.0
     env:
       - LABEL=docker_build_and_push
