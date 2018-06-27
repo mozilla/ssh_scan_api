@@ -1,16 +1,3 @@
-PATH
-  remote: .
-  specs:
-    ssh_scan_api (0.0.1)
-      haml
-      pg (~> 0.21)
-      secure_headers (= 3.6.4)
-      sinatra
-      sinatra-activerecord
-      sinatra-contrib
-      ssh_scan (= 0.0.35)
-      thin
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -144,13 +131,20 @@ PLATFORMS
 
 DEPENDENCIES
   coveralls
+  haml
+  pg (~> 0.21)
   pry
   rack-test
   rake
   rspec (~> 3.0)
   rspec-its (~> 1.2)
   rubocop
-  ssh_scan_api!
+  secure_headers (= 3.6.4)
+  sinatra
+  sinatra-activerecord
+  sinatra-contrib
+  ssh_scan (= 0.0.35)
+  thin
 
 BUNDLED WITH
    1.16.2

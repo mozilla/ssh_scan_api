@@ -33,11 +33,11 @@ Gem::Specification.new do |s|
   s.add_dependency('thin')
   s.add_dependency('haml')
   s.add_dependency('secure_headers', '3.6.4')
+  s.add_development_dependency('rspec', '~> 3.0')
+  s.add_development_dependency('rspec-its', '~> 1.2')
   s.add_development_dependency('rack-test')
   s.add_development_dependency('coveralls')
   s.add_development_dependency('pry')
-  s.add_development_dependency('rspec', '~> 3.0')
-  s.add_development_dependency('rspec-its', '~> 1.2')
   s.add_development_dependency('rake')
   s.add_development_dependency('rubocop')
 end
