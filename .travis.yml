@@ -19,9 +19,9 @@ matrix:
     services:
       - postgres
     script:
+      - createuser sshobs --no-password --superuser
       - bundle install
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+      - bundle exec rake db:drop && rake db:create && rake db:migrate
       - bundle exec rake spec
     after_success:
       - coveralls
@@ -38,9 +38,9 @@ matrix:
     services:
       - postgres
     script:
+      - createuser sshobs --no-password --superuser
       - bundle install
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+      - bundle exec rake db:drop && rake db:create && rake db:migrate
       - bundle exec rake spec
   - rvm: 2.3.6
     env:
@@ -55,9 +55,9 @@ matrix:
     services:
       - postgres
     script:
+      - createuser sshobs --no-password --superuser
       - bundle install
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+      - bundle exec rake db:drop && rake db:create && rake db:migrate
       - bundle exec rake spec
   - rvm: 2.2.9
     env:
@@ -72,9 +72,9 @@ matrix:
     services:
       - postgres
     script:
+      - createuser sshobs --no-password --superuser
       - bundle install
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
+      - bundle exec rake db:drop && rake db:create && rake db:migrate
       - bundle exec rake spec
   - rvm: 2.5.0
     env:
