@@ -14,7 +14,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: ./docker/api
+      dockerfile: ./Dockerfile
     ports:
       - 8000:8000
     links:
@@ -31,7 +31,7 @@ services:
       - default
     restart: always
     depends_on:
-      - "database"
+      - database
     stdin_open: true
     tty: true
     working_dir: /app
