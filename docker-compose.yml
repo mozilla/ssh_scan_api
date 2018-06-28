@@ -12,9 +12,10 @@ services:
       - default
     restart: unless-stopped
   api:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    # build:
+    #   context: .
+    #   dockerfile: ./Dockerfile
+    image: "mozilla/ssh_scan_api:latest"
     ports:
       - 8000:8000
     links:
