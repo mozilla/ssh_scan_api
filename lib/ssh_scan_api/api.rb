@@ -197,6 +197,12 @@ module SSHScan
             # Make sure we have a relevant match scan
             return {"accepted" => "false"}.to_json unless scan
 
+            # Pull out compliance info, if available
+            if result["compliance"] && result["compliance"]["grade"]
+              grade = result["compliance"]["grade"]
+              scan.grade = result["compliance"]["grade"]
+            end
+
             if result["error"]
               scan.state = "ERRORED"
               scan.worker_id = worker_id
