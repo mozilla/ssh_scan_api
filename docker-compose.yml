@@ -1,5 +1,6 @@
 version: '2.3'
 services:
+  # For prod, comment this entire service out, and point to remote RDS instance using SSHSCAN_DATABASE_HOST env var
   database:
     build:
       context: .
@@ -39,6 +40,7 @@ services:
     command: ["/app/bin/ssh_scan_api"]
   worker:
     # For dev, comment this out, and use docker-compose from ssh_scan_worker project, comment out image, and uncomment build block
+    # For prod, comment this out, and use docker-compose from ssh_scan_worker project
     image: "mozilla/ssh_scan_worker:latest"
     scale: 3
     links:
