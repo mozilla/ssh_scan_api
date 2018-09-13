@@ -23,7 +23,6 @@ module SSHScan
         end
       end
 
-      include SSHScan
       register Sinatra::Namespace
       register Sinatra::ActiveRecordExtension
 
@@ -54,7 +53,7 @@ module SSHScan
       end
 
       before do
-        headers "Access-Control-Allow-Methods" => "GET, POST"
+        headers "Access-Control-Allow-Methods" => "GET, POST, OPTIONS, HEAD"
         headers "Access-Control-Allow-Origin" => "*"
         headers "Access-Control-Max-Age" => "86400"
         headers "Cache-control" => "no-store"
@@ -108,7 +107,7 @@ module SSHScan
 
           # Perform a new scan
           begin
-            scan = Scan.new do |s|
+            scan = SSHScan::Scan.new do |s|
               s.scan_id = SecureRandom.uuid
               s.creation_time = Time.now
               s.target = params["target"]
@@ -130,7 +129,7 @@ module SSHScan
           return {"error" => "no uuid specified"}.to_json if uuid.nil? || uuid.empty?
 
           begin
-            scan = Scan.find_by("scan_id": uuid)
+            scan = SSHScan::Scan.find_by("scan_id": uuid)
 
             if scan.nil?
               return {"scan" => "UNKNOWN"}.to_json
@@ -192,7 +191,7 @@ module SSHScan
           end
 
           begin
-            scan = Scan.find_by("scan_id": uuid)
+            scan = SSHScan::Scan.find_by("scan_id": uuid)
 
             # Make sure we have a relevant match scan
             return {"accepted" => "false"}.to_json unless scan
@@ -225,7 +224,7 @@ module SSHScan
           queued_max_age = 0
 
           begin
-            oldest = Scan.where(state: "QUEUED").minimum(:creation_time)
+            oldest = SSHScan::Scan.where(state: "QUEUED").minimum(:creation_time)
           ensure
             ActiveRecord::Base.connection_pool.release_connection
           end
