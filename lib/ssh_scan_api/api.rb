@@ -143,7 +143,9 @@ module SSHScan
             when "RUNNNING"
               return {"status" => "RUNNNING"}.to_json
             when "COMPLETED"
-              return scan.raw_scan
+              parsed_scan = JSON.parse(scan.raw_scan)
+              parsed_scan["status"] = "COMPLETED"
+              return parsed_scan.to_json
             else
               return {"status" => "UNKNOWN"}.to_json
             end
