@@ -6,7 +6,7 @@ addons:
   postgresql: "9.6"
 matrix:
   include:
-  - rvm: ruby-head
+  - rvm: 2.6.0
     env:
       - LABEL=unit_tests
       - SSHSCAN_API_HOST=127.0.0.1
@@ -23,7 +23,7 @@ matrix:
       - database/init-user-db-travis.sh
     after_success:
       - coveralls
-  - rvm: 2.5.0
+  - rvm: 2.5.3
     env:
       - LABEL=unit_tests
       - SSHSCAN_API_HOST=127.0.0.1
@@ -38,37 +38,7 @@ matrix:
     before_script:
       - chmod u+x database/init-user-db-travis.sh
       - database/init-user-db-travis.sh
-  - rvm: 2.3.6
-    env:
-      - LABEL=unit_tests
-      - SSHSCAN_API_HOST=127.0.0.1
-      - SSHSCAN_API_PORT=8000
-      - SSHSCAN_API_ALLOWED_PORTS=22
-      - SSHSCAN_API_AUTHENTICATION=false
-      - SSHSCAN_DATABASE_HOST=database
-      - SSHSCAN_DATABASE_NAME=ssh_observatory
-      - SSHSCAN_DATABASE_USERNAME=sshobs
-    services:
-      - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
-  - rvm: 2.2.9
-    env:
-      - SSHSCAN_API_HOST=127.0.0.1
-      - SSHSCAN_API_PORT=8000
-      - SSHSCAN_API_ALLOWED_PORTS=22
-      - SSHSCAN_API_AUTHENTICATION=false
-      - SSHSCAN_DATABASE_HOST=database
-      - SSHSCAN_DATABASE_NAME=ssh_observatory
-      - SSHSCAN_DATABASE_USERNAME=sshobs
-      - LABEL=unit_tests
-    services:
-      - postgres
-    before_script:
-      - chmod u+x database/init-user-db-travis.sh
-      - database/init-user-db-travis.sh
-  - rvm: 2.5.0
+  - rvm: 2.6.0
     env:
       - LABEL=docker_build_and_push
     services:

@@ -1,4 +1,4 @@
-FROM ruby:latest
+FROM ruby:2.6.0
 MAINTAINER Jonathan Claudius
 COPY ./Gemfile /app/Gemfile
 COPY ./lib /app/lib
