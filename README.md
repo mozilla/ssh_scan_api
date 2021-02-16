@@ -1,3 +1,5 @@
+# WARNING Deprecated - please use [ssh_scan](https://github.com/mozilla/ssh_scan) from command-line 
+
 # ssh_scan_api
 
 [![Build Status](https://secure.travis-ci.org/mozilla/ssh_scan_api.png)](http://travis-ci.org/mozilla/ssh_scan_api)
